@@ -188,6 +188,19 @@ DBMS_DB_PASSWORD=strong-password
 DBMS_DB_HOST=127.0.0.1
 DBMS_DB_PORT=3306
 ```
+```sql
+CREATE DATABASE radius CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'radius'@'%' IDENTIFIED BY 'strong-password';
+GRANT ALL PRIVILEGES ON radius.* TO 'radius'@'%';
+
+```
+RADIUS_DB_ENGINE=radius
+RADIUS_DB_NAME=radius
+RADIUS_DB_USER=radius
+RADIUS_DB_PASSWORD=strong-password
+RADIUS_DB_HOST=127.0.0.1
+RADIUS_DB_PORT=3306
+```
 
 Create the tables with `python manage.py migrate`. The MySQL driver is PyMySQL, which is pure Python, so no C build tools are needed.
 
