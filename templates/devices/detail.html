@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{# One device's backups (/devices/<id>). Data: loadDevicePage() in pages/backups.js #}
+{% block content %}
+<section id="devpage">
+    <div class="title"><div><button class="link" id="dpBack" type="button">&larr; Back to Device Inventory</button>
+      <div class="dp-head"><span id="dpLogo" class="brand-logo" aria-hidden="true"></span><div><h2 id="dpTitle">Device</h2><p id="dpSub"></p></div></div></div>
+      <div class="tacts"><button class="b d adm" id="dpDelAll" type="button" hidden>Delete all versions</button></div></div>
+    <div class="kpis" id="dpKpis"></div>
+    <div id="dpGroup"></div>
+  </section>
+{% endblock %}

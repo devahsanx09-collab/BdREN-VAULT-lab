@@ -1,0 +1,5 @@
+# Lets the web application restart FreeRADIUS after a RADIUS device (NAS) is added or removed.
+# Replace "dbms" with the Linux user that runs "python manage.py serve", then:
+#   sudo cp deploy/radius/sudoers-dbms.example /etc/sudoers.d/dbms-radius
+#   sudo chmod 440 /etc/sudoers.d/dbms-radius && sudo visudo -cf /etc/sudoers.d/dbms-radius
+dbms ALL=(root) NOPASSWD: /usr/bin/systemctl restart freeradius

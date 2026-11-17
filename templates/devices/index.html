@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{# Device Inventory (/devices): table, filters, ping, Run backup. Data: pages/devices.js #}
+{% block content %}
+<section id="devices">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Every switch, router, firewall and OLT under management: reachability, login and last backup result." %}</div>
+      <div class="tacts"><a class="b op" href="/api/devices/export.csv">Export inventory CSV</a><button class="b op" id="addBtn" type="button">Add device</button><button class="b op" id="retryFailed" type="button">Retry failed</button><button class="b p op" id="runAll" type="button">Back up all</button></div></div>
+    <div class="kpis" id="stats"></div>
+    <div class="bar flt">
+      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search name, IP or type" aria-label="Search devices"></div>
+      <div class="chips" id="devChips" role="group" aria-label="Filter devices"></div>
+      <span class="sp"></span>
+      <label class="live"><input type="checkbox" id="pingOn" checked> Live ping</label>
+      <button class="link d adm" id="delAll" type="button">Delete all</button>
+    </div>
+    <div class="selbar" id="selBar" hidden><b id="selCount"></b><span class="sp"></span>
+      <button class="b op" id="runSel" type="button">Back up selected</button><button class="b d adm" id="delSel" type="button">Delete selected</button><button class="link" id="clrSel" type="button">Clear</button></div>
+    <div class="jobbar" id="jobBar" role="status" hidden><span class="spin" aria-hidden="true"></span><b id="jobTx">Backup running</b><span class="sp"></span>
+      <button class="b d op" id="jobStop" type="button">Stop backup</button></div>
+    <div class="progress" id="prog"><i></i></div>
+    <div id="devList"></div>
+  </section>
+{% endblock %}

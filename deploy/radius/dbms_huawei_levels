@@ -1,0 +1,22 @@
+#  FreeRADIUS 3 policy: Huawei switches that only know privilege levels 0-3.
+#
+#  The access levels send Huawei-Exec-Privilege 15 (super-admin), 2 (read-write) and 1 (read-only).
+#  Some Huawei switches only support levels 0-3. For a device whose type in RADIUS / AAA -> NAS Clients
+#  is "Huawei (levels 0-3 only)" (nas.type = 'huawei-3'), any level above 3 is lowered to 3 (management).
+#  The type is read on every login, so changing it on the NAS Clients page needs no restart.
+#
+#  Installed by deploy/install.sh. By hand (Debian/Ubuntu paths):
+#    1. sudo install -m 640 -o root -g freerad deploy/radius/dbms_huawei_levels /etc/freeradius/3.0/policy.d/
+#    2. In /etc/freeradius/3.0/sites-enabled/default, inside "post-auth { ... }", add as the FIRST line:
+#           dbms_huawei_levels
+#    3. sudo freeradius -XC   then   sudo systemctl restart freeradius
+
+dbms_huawei_levels {
+	if (&reply:Huawei-Exec-Privilege && (&reply:Huawei-Exec-Privilege > 3)) {
+		if ("%{sql:SELECT COUNT(*) FROM nas WHERE nasname = '%{Packet-Src-IP-Address}' AND type = 'huawei-3'}" != "0") {
+			update reply {
+				&Huawei-Exec-Privilege := 3
+			}
+		}
+	}
+}

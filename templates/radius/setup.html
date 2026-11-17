@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{# Device Setup (/radius/setup): copy-ready RADIUS configuration per vendor, filled with this server's address and
+   the chosen device's shared secret. The commands are built by pages/radius.js (radSetup*). #}
+{% block content %}
+<section id="radius-setup">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Copy-ready commands that make a switch, router or firewall log users in through this RADIUS server." %}</div></div>
+    <div class="card su-card">
+      <div class="su-form">
+        <div class="su-field">
+          <label for="suDev">Device</label>
+          <select id="suDev" aria-label="Device from NAS Clients"><option value="">Choose a device from NAS Clients...</option></select>
+          <small class="su-hint">Pick one to fill in its address and shared secret.</small>
+        </div>
+        <div class="su-field">
+          <label for="suServer">RADIUS server address</label>
+          <input id="suServer" autocomplete="off" spellcheck="false" maxlength="64">
+          <small class="su-hint">The address the device can reach this server on.</small>
+        </div>
+        <div class="su-field">
+          <label for="suSecret">Shared secret</label>
+          <span class="su-sec"><input id="suSecret" autocomplete="off" spellcheck="false" maxlength="60" placeholder="Choose a device, or type it"><button class="b" type="button" id="suSecretBtn" disabled>Insert</button></span>
+          <small class="su-hint">From the chosen device, or type your own.</small>
+        </div>
+      </div>
+      <p class="su-note" id="suNote"></p>
+    </div>
+    <div class="su-tabs" role="tablist" aria-label="Vendor" id="suTabs"></div>
+    <div id="suBody"></div>
+  </section>
+{% endblock %}

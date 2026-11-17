@@ -1,0 +1,28 @@
+#  FreeRADIUS 3 policy for RADIUS Admin -> Users -> "Where this user can log in".
+#
+#  A user with no rows in the dbms_user_nas table may log in on every device.
+#  A user with rows may log in only when the request comes from one of those addresses,
+#  i.e. from a device registered under RADIUS Admin -> Devices (NAS).
+#
+#  Install once (Debian/Ubuntu paths; on RHEL use /etc/raddb instead of /etc/freeradius/3.0):
+#
+#    1. python manage.py radius_init                  (creates the dbms_user_nas table)
+#    2. sudo cp deploy/radius/dbms_device_limit /etc/freeradius/3.0/policy.d/
+#    3. In /etc/freeradius/3.0/sites-enabled/default, inside "authorize { ... }",
+#       add this line directly AFTER the "-sql" (or "sql") line:
+#
+#           dbms_device_limit
+#
+#    4. sudo freeradius -XC                           (must end with "Configuration appears to be OK")
+#    5. sudo systemctl restart freeradius
+#
+#  Later changes on the Users page need no restart: the table is read on every login.
+
+dbms_device_limit {
+	if ("%{sql:SELECT CASE WHEN COUNT(*) = 0 OR SUM(CASE WHEN nasname = '%{Packet-Src-IP-Address}' THEN 1 ELSE 0 END) > 0 THEN 'ok' ELSE 'deny' END FROM dbms_user_nas WHERE username = '%{User-Name}'}" == "deny") {
+		update reply {
+			&Reply-Message := "This account may not log in on this device"
+		}
+		reject
+	}
+}

@@ -1,0 +1,28 @@
+#  FreeRADIUS 3 virtual server: switches added on RADIUS / AAA -> NAS Clients work IMMEDIATELY,
+#  without restarting FreeRADIUS.
+#
+#  FreeRADIUS loads the "nas" table only when it starts (read_clients = yes). A request from an address it
+#  does not know yet is handed to this server, which looks the address up in the same "nas" table and, when
+#  it is there, creates the client on the fly with its name and shared secret. Unknown addresses get no
+#  client and are ignored, exactly as before. Switches loaded at start keep working unchanged.
+#
+#  Installed by deploy/radius/enable_dynamic_clients.sh (also run by deploy/install.sh), together with this
+#  block in clients.conf:
+#      client dbms_dynamic { ipaddr = 0.0.0.0/0  dynamic_clients = dbms_dynamic_clients  lifetime = 60 }
+#
+#  Only single addresses are looked up here; a network entry (10.0.0.0/24) added later still needs one
+#  FreeRADIUS restart, which the application does by itself.
+
+server dbms_dynamic_clients {
+	authorize {
+		if ("%{sql:SELECT COUNT(*) FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}" == "1") {
+			update control {
+				&FreeRADIUS-Client-IP-Address = "%{Packet-Src-IP-Address}"
+				&FreeRADIUS-Client-Shortname = "%{sql:SELECT shortname FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}"
+				&FreeRADIUS-Client-Secret = "%{sql:SELECT secret FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}"
+				&FreeRADIUS-Client-NAS-Type = "other"
+			}
+			ok
+		}
+	}
+}

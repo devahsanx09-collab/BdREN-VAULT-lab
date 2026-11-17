@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{# System Settings (/settings, administrators): schedule, performance, sounds. Data: pages/settings.js #}
+{% block content %}
+<section id="settings" class="settings-page">
+    <div class="title settings-title">
+      <div>{% include "components/_page_heading.html" with title=page.title subtitle="Configure backup operations, automation, data retention and browser notifications." %}</div>
+      <button class="b p settings-save" type="submit" form="sfrm">Save settings</button>
+    </div>
+    <div class="settings-notice"><span class="settings-notice-icon" aria-hidden="true">ⓘ</span><div><strong>Configuration guidance</strong><p>Review the sections from top to bottom. Operational settings are shown first; user-experience preferences are shown last.</p></div></div>
+    <form id="sfrm" class="settings-stack">
+      <div class="settings-section-label"><span>01</span><div><strong>Backup automation</strong><small>Define when backups run and how missed schedules are recovered.</small></div></div>
+      <div class="card schedule-card"><div class="schedule-heading"><div><span class="eyebrow">AUTOMATION</span><h3>Scheduled backup</h3><p class="d">Choose how often the system should back up every configured device. Choose specific days of the month, such as the 1st and 15th, or any dates from 1 to 31. A configuration file is saved only when the configuration changes.</p></div><span class="schedule-mark" aria-hidden="true">↻</span></div>
+        <label class="ck schedule-toggle"><input type="checkbox" name="sched_on"><span><strong>Enable scheduled backup</strong><small>Run automatically in the background while the server service is running.</small></span></label>
+        <div class="fg schedule-config-grid" style="margin-top:14px">
+          <label>Backup frequency<select name="sched_mode" aria-describedby="schedModeHelp"><option value="semimonthly">Monthly — selected dates</option><option value="daily">Every day</option><option value="days">Every N days</option><option value="interval">Every N minutes</option></select></label>
+          <label id="lAt">Run time (Bangladesh time, AM/PM)<input name="sched_at" type="text" inputmode="text" autocomplete="off" placeholder="02:00 AM" aria-label="Scheduled backup run time in Bangladesh time (AM/PM)" pattern="(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)"></label>
+          <label id="lEvery">Repeat interval<input name="sched_every" type="number" min="5" max="10080" required></label>
+          <div id="lDays" class="date-schedule-field" hidden><div class="date-schedule-title"><label for="schedDatePicker">Select days of the month</label><span class="date-schedule-selected" id="schedDaysSummary">1st and 15th selected</span></div><input name="sched_days" type="hidden" value="1,15"><div id="schedDatePicker" class="schedule-date-grid" role="group" aria-label="Choose backup days of each month"></div><small class="date-schedule-help">Choose one or more dates. Backups run at the selected time. Dates unavailable in a month (for example, the 31st in February) are skipped.</small></div>
+          <p class="schedule-mode-help" id="schedModeHelp" aria-live="polite">Choose the calendar dates and run time for recurring monthly backups.</p>
+        </div>
+        <div class="schedule-policy">
+          <div class="schedule-policy-copy"><strong>Missed-run recovery</strong><small>If the server is temporarily offline at the scheduled time, run the missed backup when service returns, for up to 24 hours. Device-level retries remain separate.</small></div>
+          <label class="switch-control"><input type="checkbox" name="sched_catchup"><span class="switch-slider"></span><span class="sr-only">Run missed scheduled backups after restart</span></label>
+        </div>
+        <div class="schedule-summary" aria-live="polite" aria-label="Scheduled backup status">
+          <div><span class="schedule-dot"></span><div><strong>Schedule status</strong><p id="schedState">Disabled</p></div></div>
+          <div><span class="schedule-icon" aria-hidden="true">◷</span><div><strong>Last scheduled run</strong><p id="schedLastText">No scheduled run yet</p></div></div>
+          <div><span class="schedule-icon" aria-hidden="true">↻</span><div><strong>Next scheduled run</strong><p id="schedNextText">Enable scheduling to calculate the next run</p></div></div>
+        </div>
+        <p class="hint" id="schedLast" style="margin:0"></p></div>
+
+      <div class="settings-section-label"><span>02</span><div><strong>Backup performance</strong><small>Set safe concurrency for device connections and backup processing.</small></div></div>
+      <div class="card"><h3>Performance</h3><p class="d">How many devices are backed up at the same time. For 500 devices, the system checks ICMP first, then uses a limited number of SSH sessions. Total time depends on device response and configuration size. Only one backup job runs at a time.</p>
+        <div class="fg"><label>Parallel SSH sessions (1 to 50)<input name="workers" type="number" min="1" max="50"></label></div>
+        <div class="planner" id="capPlan" aria-live="polite"></div>
+</div>
+      <div class="settings-section-label"><span>03</span><div><strong>Data retention</strong><small>Choose how long operational backup logs remain available.</small></div></div>
+      <div class="card settings-card retention-card"><div class="schedule-heading"><div><span class="eyebrow">DATA MANAGEMENT</span><h3>Log retention</h3><p class="d">Control the retention period for historical device backup log entries. Saved configuration files are not affected.</p></div><span class="schedule-mark" aria-hidden="true">▤</span></div>
+        <div class="fg retention-field"><label>Keep device backup logs for<select name="log_retention_months"><option value="0">Forever (do not delete)</option><option value="1">1 month</option><option value="3">3 months</option><option value="6">6 months</option><option value="12">12 months</option><option value="24">24 months</option></select></label><p class="d">Older Logs-page entries are deleted automatically once a day. Saved configuration files are not deleted.</p></div></div>
+      <div class="settings-section-label"><span>04</span><div><strong>Notifications</strong><small>Choose which events play a notification sound in this browser.</small></div></div>
+      <div class="card sound-settings-card">
+        <div class="schedule-heading"><div><span class="eyebrow">USER EXPERIENCE</span><h3>Notification sounds</h3><p class="d">Choose which events play a short sound in this browser. These preferences are saved on this computer and do not affect other users.</p></div><span class="schedule-mark" aria-hidden="true">♫</span></div>
+        <div class="sound-preference-grid">
+          <div class="sound-preference"><div class="sound-pref-icon backup-sound-icon" aria-hidden="true">✓</div><div class="sound-pref-copy"><strong>Backup result</strong><small>Success, unchanged, or failed backup result</small></div><label class="switch-control"><input type="checkbox" id="soundBackup"><span class="switch-slider"></span><span class="sr-only">Backup result sound</span></label><button type="button" class="b sound-test" data-test-sound="done">Test sound</button></div>
+          <div class="sound-preference"><div class="sound-pref-icon delete-sound-icon" aria-hidden="true">×</div><div class="sound-pref-copy"><strong>Delete actions</strong><small>When a device, user, or backup is deleted</small></div><label class="switch-control"><input type="checkbox" id="soundDelete"><span class="switch-slider"></span><span class="sr-only">Delete action sound</span></label><button type="button" class="b sound-test" data-test-sound="del">Test sound</button></div>
+          <div class="sound-preference"><div class="sound-pref-icon add-sound-icon" aria-hidden="true">＋</div><div class="sound-pref-copy"><strong>Add device or user</strong><small>When a new item is added successfully</small></div><label class="switch-control"><input type="checkbox" id="soundAdd"><span class="switch-slider"></span><span class="sr-only">Add action sound</span></label><button type="button" class="b sound-test" data-test-sound="add">Test sound</button></div>
+          <div class="sound-preference"><div class="sound-pref-icon system-sound-icon" aria-hidden="true">•</div><div class="sound-pref-copy"><strong>Other confirmations</strong><small>Settings saved, profile updates, and similar actions</small></div><label class="switch-control"><input type="checkbox" id="soundSystem"><span class="switch-slider"></span><span class="sr-only">Confirmation sound</span></label><button type="button" class="b sound-test" data-test-sound="ok">Test sound</button></div>
+        </div><p class="hint sound-note">Tip: your browser may require one click on the page before it allows notification sounds.</p>
+      </div>
+
+      <div class="settings-footer"><p>Changes are applied when you save settings. Notification preferences are stored in this browser.</p><button class="b p" type="submit">Save settings</button></div>
+    </form>
+  </section>
+{% endblock %}

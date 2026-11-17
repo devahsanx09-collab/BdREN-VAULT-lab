@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{# Shown (HTTP 403) when the signed-in role may not open a screen, e.g. an Operator opening /settings. #}
+{% block content %}
+<section class="denied">
+  <div class="empty err" role="alert">
+    <b>You do not have access to {{ page.title }}</b>
+    <span class="why">This page is for administrators. Your role is {{ role_label }}. If you need it, ask an administrator to change your role.</span>
+    <a class="b" href="/dashboard">Go to the Dashboard</a>
+  </div>
+</section>
+{% endblock %}

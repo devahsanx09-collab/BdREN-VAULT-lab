@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{# User Management (/users, administrators): web users and sign-in history. Data: pages/users.js #}
+{% block content %}
+<section id="users">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Who can sign in to this panel, and what each role is allowed to do." %}</div><button class="b p" id="addUser">Add user</button></div>
+    <div id="userList"></div>
+    <section class="card" id="signinPanel" style="margin-top:18px">
+      <div class="title"><div><h3>Sign-in history</h3><p class="d">Every sign-in, failed attempt and sign-out of this website, with the address it came from.</p></div>
+        <button class="b" id="signinRefresh" type="button">Refresh</button></div>
+      <div class="kpis" id="signinKpis"></div>
+      <div class="bar flt rad-login-bar">
+        <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="signinQ" placeholder="Search account, IP address or browser" aria-label="Search sign-in history"></div>
+        <select id="signinAccount" aria-label="Filter by account"><option value="">All accounts</option></select>
+        <select id="signinResult" aria-label="Filter by result"><option value="">All results</option><option>Signed in</option><option>Failed</option><option>Signed out</option></select>
+        <span class="sp"></span><span class="d" id="signinCount" aria-live="polite"></span>
+      </div>
+      <div id="signinNote"></div><div id="signinList"></div>
+    </section>
+    <div class="legend"><span><b>Administrator</b> has full access, including deleting data and managing users.</span><span><b>Operator</b> can add and edit devices and run backups, but cannot delete.</span><span><b>Viewer</b> has read-only access and cannot see saved passwords.</span></div>
+  </section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% comment %} Pop-ups opened from several screens: confirmation, backup viewer, device backups, Add / Edit device,
+   Add / Edit user and Change password. Included once by base.html. {% endcomment %}
+<dialog id="cfm" class="cfm" aria-labelledby="cfmT" aria-describedby="cfmM">
+  <div class="cfm-body">
+    <div class="cfm-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+    <div class="cfm-txt"><h2 id="cfmT"></h2><p id="cfmM"></p><div class="cfm-x" id="cfmX" hidden></div>
+      <label class="cfm-t" id="cfmTyL" hidden><span id="cfmTyT"></span><input id="cfmTy" autocomplete="off" spellcheck="false"></label>
+      <p class="cfm-err" id="cfmE" role="alert" hidden></p></div>
+  </div>
+  <div class="cfm-act"><button class="b" id="cfmNo" type="button">Cancel</button><button class="b dg" id="cfmYes" type="button">Delete</button></div>
+</dialog>
+<dialog id="devBkDlg" class="bkdlg" aria-labelledby="devBkTitle">
+  <div class="dh"><div style="min-width:0"><h2 id="devBkTitle"></h2><div class="t" id="devBkMeta" style="color:var(--mute);font-size:13px"></div></div><span class="sp"></span>
+    <button class="b d adm" id="devBkDelAll" type="button" hidden>Delete all versions</button>
+    <button class="x" type="button" id="devBkClose" aria-label="Close">&times;</button></div>
+  <div id="devBkBody"></div>
+</dialog>
+<dialog id="vdlg" class="vdlg" aria-labelledby="vTitle">
+  <div class="vhead"><div class="vt2"><strong id="vTitle"></strong><span id="vMeta"></span></div><span class="sp"></span>
+    <button class="b" id="vWrap" type="button" aria-pressed="false">Wrap lines</button><button class="b" id="vCopy" type="button">Copy</button><button class="b" id="vDl" type="button">Download</button>
+    <button class="x" id="vClose" type="button" aria-label="Close">&times;</button></div>
+  <pre id="vBody" tabindex="0"></pre>
+</dialog>
+<dialog id="addDlg">
+  <div class="dh"><h2>Add device</h2><button class="x" type="button" data-close aria-label="Close">&times;</button></div>
+  <form method="dialog">{% include "devices/_device_fields.html" with mode="add" %}</form>
+</dialog>
+<dialog id="editDlg">
+  <div class="dh"><h2>Edit device</h2><button class="x" type="button" data-close aria-label="Close">&times;</button></div>
+  <form method="dialog">{% include "devices/_device_fields.html" with mode="edit" %}</form>
+</dialog>
+<dialog id="udlg">
+  <div class="dh"><h2 id="uTitle">Add user</h2><button class="x" type="button" data-close-dlg="udlg" aria-label="Close">&times;</button></div>
+  <form method="dialog" id="ufrm">
+    <label>Username<input name="username" autocomplete="off" required></label>
+    <label>Role<select name="role"><option value="viewer">Viewer</option><option value="operator">Operator</option><option value="admin">Administrator</option></select></label>
+    <label class="w">Password<div class="pwwrap"><input name="password" type="password" autocomplete="new-password"><button type="button" class="eye">Show</button></div></label>
+    <label class="w ck"><input type="checkbox" name="active" checked> Account is active (can sign in)</label>
+    <p class="hint">Passwords need at least 12 characters and must not be common or all digits. Changing a password signs that user out everywhere.</p>
+    <div class="act"><button class="b" type="button" data-close-dlg="udlg">Cancel</button><button class="b p" type="submit">Save</button></div>
+  </form>
+</dialog>
+<dialog id="mdlg">
+  <div class="dh"><h2>Change password</h2><button class="x" type="button" data-close-dlg="mdlg" aria-label="Close">&times;</button></div>
+  <form method="dialog" id="mfrm">
+    <label class="w">Current password<input name="current" type="password" autocomplete="current-password" required></label>
+    <label class="w">New password<div class="pwwrap"><input name="newpw" type="password" autocomplete="new-password" required><button type="button" class="eye">Show</button></div></label>
+    <label class="w">Confirm new password<input name="confirm" type="password" autocomplete="new-password" required></label>
+    <div class="act"><button class="b" type="button" data-close-dlg="mdlg">Cancel</button><button class="b p" type="submit">Change password</button></div>
+  </form>
+</dialog>

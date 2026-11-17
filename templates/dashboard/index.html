@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{# Dashboard (/dashboard): KPIs, network map and charts. Data: pages/dashboard.js #}
+{% block content %}
+<section id="dashboard">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Backup activity, device uptime and the automatic schedule at a glance." %}</div>
+      <button class="b" id="dashRefresh" type="button">Refresh</button></div>
+    <div class="netmap">
+      <div class="nm-tx">
+        <span class="nm-eyebrow"><i></i>Live network fabric</span>
+        <h3>Configurations flowing in from every device</h3>
+        <p class="nm-sub">Every switch, router and OLT reports in to the backup engine. Live figures are in the tiles below.</p>
+      </div>
+      <svg class="nm-map" viewBox="0 0 640 160" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="nmLink" x1="0" x2="1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".15"/><stop offset=".5" stop-color="#818cf8" stop-opacity=".7"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".15"/></linearGradient>
+          <radialGradient id="nmCore"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#4c6ef5"/></radialGradient>
+        </defs>
+        <g class="nm-links" stroke="url(#nmLink)" stroke-width="1.6" fill="none">
+          <path id="nmp1" d="M180 45 L320 80"/><path id="nmp2" d="M180 115 L320 80"/><path id="nmp3" d="M460 45 L320 80"/><path id="nmp4" d="M460 115 L320 80"/>
+          <path id="nmp5" d="M60 28 L180 45"/><path id="nmp6" d="M60 80 L180 45"/><path id="nmp7" d="M60 80 L180 115"/><path id="nmp8" d="M60 132 L180 115"/>
+          <path id="nmp9" d="M580 28 L460 45"/><path id="nmp10" d="M580 80 L460 45"/><path id="nmp11" d="M580 80 L460 115"/><path id="nmp12" d="M580 132 L460 115"/>
+        </g>
+        <g class="nm-pkts">
+          <circle r="3" class="pk a"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#nmp5"/></animateMotion></circle>
+          <circle r="3" class="pk b"><animateMotion dur="2.9s" begin=".6s" repeatCount="indefinite"><mpath href="#nmp8"/></animateMotion></circle>
+          <circle r="3" class="pk c"><animateMotion dur="2.2s" begin="1s" repeatCount="indefinite"><mpath href="#nmp9"/></animateMotion></circle>
+          <circle r="3" class="pk a"><animateMotion dur="2.7s" begin=".3s" repeatCount="indefinite"><mpath href="#nmp12"/></animateMotion></circle>
+          <circle r="3.4" class="pk b"><animateMotion dur="1.8s" repeatCount="indefinite"><mpath href="#nmp1"/></animateMotion></circle>
+          <circle r="3.4" class="pk c"><animateMotion dur="2s" begin=".8s" repeatCount="indefinite"><mpath href="#nmp2"/></animateMotion></circle>
+          <circle r="3.4" class="pk a"><animateMotion dur="1.9s" begin=".4s" repeatCount="indefinite"><mpath href="#nmp3"/></animateMotion></circle>
+          <circle r="3.4" class="pk b"><animateMotion dur="2.1s" begin="1.2s" repeatCount="indefinite"><mpath href="#nmp4"/></animateMotion></circle>
+          <circle r="2.6" class="pk c"><animateMotion dur="3.1s" begin="1.5s" repeatCount="indefinite"><mpath href="#nmp6"/></animateMotion></circle>
+          <circle r="2.6" class="pk a"><animateMotion dur="3.3s" begin=".9s" repeatCount="indefinite"><mpath href="#nmp11"/></animateMotion></circle>
+        </g>
+        <g class="nm-nodes">
+          <circle class="ring" cx="320" cy="80" r="22"/><circle class="core" cx="320" cy="80" r="15" fill="url(#nmCore)"/>
+          <circle class="dist" cx="180" cy="45" r="9"/><circle class="dist" cx="180" cy="115" r="9"/><circle class="dist" cx="460" cy="45" r="9"/><circle class="dist" cx="460" cy="115" r="9"/>
+          <circle class="edge" cx="60" cy="28" r="6"/><circle class="edge" cx="60" cy="80" r="6"/><circle class="edge" cx="60" cy="132" r="6"/>
+          <circle class="edge" cx="580" cy="28" r="6"/><circle class="edge" cx="580" cy="80" r="6"/><circle class="edge" cx="580" cy="132" r="6"/>
+          <path class="core-ic" d="M313 76h14M313 84h14" />
+        </g>
+      </svg>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card"><h3>Backups per day</h3><p class="d">Last 14 days</p><div id="chDays"></div>
+        <div class="lg"><span class="k ok">Saved</span><span class="k same">Unchanged</span><span class="k bad">Failed</span></div></div>
+      <div class="card"><h3>Last backup result</h3><p class="d">Per device</p><div id="chDonut"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Devices online</h3><p class="d" id="upSub">Last 24 hours, from the automatic ping monitor</p><div id="chUp"></div></div>
+      <div class="card"><h3>Devices by vendor</h3><p class="d">Share of all devices</p><div id="chVendor"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="title"><div><h3>System health</h3><p class="d">Disk capacity, database size and backup activity</p></div><span class="d" id="healthChecked">Updates with dashboard</span></div><div id="systemHealth" class="kpis"></div></div>
+  </section>
+{% endblock %}

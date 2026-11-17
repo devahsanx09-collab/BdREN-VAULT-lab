@@ -1,0 +1,99 @@
+{% load static %}<!doctype html>
+{% comment %} Sign-in and first-run setup (apps/accounts/views.py: login_view, setup). Styles: static/css/auth.css;
+   behaviour and the animated background: static/js/pages/auth.js (inline scripts are blocked by the CSP). {% endcomment %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="same-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#060d1b">
+<title>{{ title }} · BdREN VAULT</title>
+<link rel="icon" type="image/png" href="{% static 'img/bdren-logo.png' %}">
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=101">
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg__aurora"></div>
+  <canvas id="scene"></canvas>
+  <div class="bg__veil"></div>
+</div>
+
+<header class="top">
+  <div class="logo"><img src="{% static 'img/bdren-logo.png' %}" alt="BdREN logo" width="360" height="232"></div>
+  <div class="divider" aria-hidden="true"></div>
+  <div class="brand-text">
+    <strong>VAULT</strong>
+    <span>Network Configuration Backup System</span>
+    <small>Centralized backup and archival of network device configurations.</small>
+  </div>
+  <div class="chip" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+    Secure Access Portal
+  </div>
+</header>
+
+<main>
+  <form class="card{% if error %} shake{% endif %}" id="loginForm" method="post" autocomplete="on" novalidate>{% csrf_token %}
+    <div class="card-head">
+      <span class="badge-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 36" fill="currentColor"><path d="M9 14V9a7 7 0 0 1 14 0v5h2a3 3 0 0 1 3 3v15H4V17a3 3 0 0 1 3-3h2Zm4 0h6V9a3 3 0 0 0-6 0v5Zm3 7a2.5 2.5 0 0 0-1 4.8V29h2v-3.2a2.5 2.5 0 0 0-1-4.8Z"/></svg>
+      </span>
+      <div>
+        <h1>{{ title }}</h1>
+        <p class="lead">{{ sub }}</p>
+      </div>
+    </div>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    <label class="lbl" for="username">Username</label>
+    <div class="field{% if error and not username %} invalid{% endif %}">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>
+      <input id="username" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter your username" required{% if not username %} autofocus{% endif %}>
+    </div>
+
+    <label class="lbl" for="password">Password</label>
+    <div class="field{% if error %} invalid{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+      <input id="password" name="password" type="password" autocomplete="{% if setup %}new-password{% else %}current-password{% endif %}" placeholder="{% if setup %}At least 12 characters{% else %}Enter your password{% endif %}" required{% if username %} autofocus{% endif %}>
+      <button type="button" class="peek" id="togglePassword" aria-label="Show password" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/><path class="slash" d="M4 4l16 16"/></svg>
+      </button>
+    </div>
+    <p class="caps" id="caps">Caps Lock is on</p>
+
+    {% if setup %}
+    <label class="lbl" for="confirm">Confirm password</label>
+    <div class="field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-6 7.5 2 2 3.5-4"/></svg>
+      <input id="confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Enter the password again" required>
+    </div>
+    <p class="hint">Use at least 12 characters, and not a common password. You can add more users after setup.</p>
+    {% else %}
+    <div class="row">
+      <label class="switch"><input type="checkbox" name="remember" id="remember" value="1"><span class="track" aria-hidden="true"></span>Keep me signed in</label>
+      <span class="note" hidden>Signs out after {{ idle_minutes }} min idle</span>
+    </div>
+    {% endif %}
+
+    <button class="submit" type="submit" id="submitBtn">
+      <span class="spinner" aria-hidden="true"></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>
+      <span class="label">{{ button }}</span>
+    </button>
+    <p class="status{% if error %} err{% elif notice %} info{% endif %}" id="status" role="{% if error %}alert{% else %}status{% endif %}" aria-live="polite">{% if error %}{{ error }}{% elif notice %}{{ notice }}{% endif %}</p>
+
+    <div class="auth">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10 4 4 8-9"/></svg>
+      Authorized personnel only · every sign-in is audited
+    </div>
+  </form>
+</main>
+
+<footer><b>BdREN</b> · Network Infrastructure Management<span class="tag">Backup Today… Ensure Tomorrow…</span></footer>
+
+<script src="{% static 'js/pages/auth.js' %}?v=112"></script>
+</body>
+</html>

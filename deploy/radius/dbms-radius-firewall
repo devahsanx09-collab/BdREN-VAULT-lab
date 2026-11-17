@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# BdREN VAULT: open RADIUS (UDP 1812 and 1813) in the ufw firewall ONLY for the devices on
+# RADIUS / AAA -> NAS Clients, instead of for the whole internet.
+#
+# Installed root-owned as /usr/local/sbin/dbms-radius-firewall by deploy/radius/enable_firewall_sync.sh.
+# The web application may run exactly this file with sudo and no arguments, after a device is added or
+# removed. It reads the device list itself from the RADIUS database, so the web application can never
+# choose a firewall rule. Safe to run any number of times.
+#
+# What it does:
+#   1. allows 1812,1813/udp from every NAS Clients address or network (rules tagged "dbms-nas"),
+#      plus any client listed by hand in FreeRADIUS clients.conf, so nothing that works today is cut off
+#   2. removes "dbms-nas" rules for devices that are no longer on NAS Clients
+#   3. only then removes the old "1812/udp, 1813/udp from anywhere" rules
+# It changes nothing when ufw is not active, and nothing at all when the database cannot be read.
+set -euo pipefail
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+RDB="@RADIUS_DB@"                     # filled in by enable_firewall_sync.sh
+DB_CNF=/etc/dbms/radius-firewall.cnf   # database login, root-only (written by enable_firewall_sync.sh)
+CLIENTS_CONF=/etc/freeradius/3.0/clients.conf
+TAG="dbms-nas"
+PORTS="1812,1813"
+
+[ "$(id -u)" -eq 0 ] || { echo "run as root" >&2; exit 1; }
+[[ "$RDB" =~ ^[A-Za-z0-9_]+$ ]] || { echo "invalid RADIUS database name in $0" >&2; exit 1; }
+exec 9>/run/dbms-radius-firewall.lock
+flock -w 60 9 || { echo "another firewall sync is still running" >&2; exit 1; }
+
+command -v ufw >/dev/null 2>&1 || { echo "ufw is not installed: nothing to do"; exit 0; }
+ufw status 2>/dev/null | grep -q "Status: active" || { echo "ufw is not active: nothing to do"; exit 0; }
+
+# ---- addresses that should reach RADIUS -------------------------------------------------------------------
+# Any database error stops here, before a single rule is touched.
+if [ -f "$DB_CNF" ]; then MYSQL=(mysql --defaults-extra-file="$DB_CNF"); else MYSQL=(mysql -u root); fi
+rows="$("${MYSQL[@]}" -N -B -e "SELECT nasname FROM \`$RDB\`.nas")" || { echo "cannot read $RDB.nas" >&2; exit 1; }
+conf=""
+if [ -r "$CLIENTS_CONF" ]; then
+  conf="$(sed -nE 's/^[[:space:]]*(ipaddr|ipv4addr|ipv6addr)[[:space:]]*=[[:space:]]*([^[:space:]#]+).*/\2/p' "$CLIENTS_CONF")"
+fi
+# Normalise with Python's ipaddress module: "OK <address or network>" or "BAD". Loopback and
+# "everyone" entries (0.0.0.0/0, the dynamic-clients catch-all) are left out: they need no rule.
+parsed="$(printf '%s\n%s\n' "$rows" "$conf" | python3 -I -c '
+import ipaddress, sys
+for line in sys.stdin:
+    s = line.strip().strip("\"\x27")
+    if not s:
+        continue
+    try:
+        n = ipaddress.ip_network(s, strict=False)
+    except ValueError:
+        print("BAD")
+        continue
+    if n.prefixlen == 0 or n.is_loopback:
+        continue
+    print("OK", n.network_address if n.num_addresses == 1 else n.with_prefixlen)
+')"
+mapfile -t WANT < <(printf '%s\n' "$parsed" | awk '$1=="OK"{print $2}' | sort -u)
+BAD=$(printf '%s\n' "$parsed" | grep -c '^BAD' || true)
+
+# ---- rules this script made before -----------------------------------------------------------------------
+added_rules="$(ufw show added 2>/dev/null || true)"
+mapfile -t HAVE < <(printf '%s\n' "$added_rules" | grep -F "comment '$TAG'" | sed -nE 's/.* from ([^ ]+) to .*/\1/p' | sort -u)
+
+in_list() { local x="$1"; shift; local y; for y in "$@"; do [ "$x" = "$y" ] && return 0; done; return 1; }
+added=0; removed=0
+for a in "${WANT[@]}"; do
+  in_list "$a" "${HAVE[@]}" && continue
+  ufw allow proto udp from "$a" to any port "$PORTS" comment "$TAG" >/dev/null && added=$((added + 1))
+done
+for a in "${HAVE[@]}"; do
+  in_list "$a" "${WANT[@]}" && continue
+  ufw --force delete allow proto udp from "$a" to any port "$PORTS" >/dev/null && removed=$((removed + 1))
+done
+
+# ---- close RADIUS to everyone else, once every device has its own rule -------------------------------------
+if [ "$BAD" -eq 0 ]; then
+  for r in "1812/udp" "1813/udp" "1812" "1813" "1812:1813/udp"; do
+    if printf '%s\n' "$added_rules" | grep -qxF "ufw allow $r"; then
+      ufw --force delete allow "$r" >/dev/null && echo "removed the rule that let anyone reach $r"
+    fi
+  done
+else
+  echo "WARNING: $BAD NAS entr$( [ "$BAD" -eq 1 ] && echo y || echo ies) are not an IP address or network;" \
+       "RADIUS stays open to everyone until they are fixed on NAS Clients" >&2
+fi
+echo "RADIUS firewall: ${#WANT[@]} device address(es) allowed on UDP $PORTS (added $added, removed $removed)"

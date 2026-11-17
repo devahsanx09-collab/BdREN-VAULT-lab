@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{# AAA Users (/radius/users): RADIUS accounts, level, allowed devices. Data: pages/radius.js #}
+{% block content %}
+<section id="radius-users">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Login accounts that FreeRADIUS authenticates on switches, routers and firewalls." %}</div>
+      <div class="tacts"><button class="b" id="radUserRefresh" type="button">Refresh</button><button class="b p" id="radAddUser" type="button">Add user</button></div></div>
+    <div class="kpis" id="radUserKpis"></div>
+    <div class="bar flt">
+      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="radQ" placeholder="Search username" aria-label="Search RADIUS users"></div>
+      <select id="radLevel" aria-label="Filter by access level"><option value="ALL">All access levels</option></select>
+      <span class="sp"></span><span class="d" id="radUserCount" aria-live="polite"></span>
+    </div>
+    <div id="radUserList"></div>
+    <div class="lvl-map">
+      <h4>What each access level gets on the device</h4>
+      <div class="tbl stack"><table>
+        <thead><tr><th>Access level</th><th>Cisco</th><th>Huawei</th><th>Juniper</th><th>MikroTik</th><th>Fortinet</th></tr></thead>
+        <tbody>
+          <tr><td data-l="Access level"><b>Super-admin</b><span class="lvl-d">Full control</span></td><td data-l="Cisco">privilege 15</td><td data-l="Huawei">level 15 (3 on levels 0-3 switches)</td><td data-l="Juniper">super-user</td><td data-l="MikroTik">full</td><td data-l="Fortinet">super_admin</td></tr>
+          <tr><td data-l="Access level"><b>Read-write</b><span class="lvl-d">Configuration, no management</span></td><td data-l="Cisco">privilege 7</td><td data-l="Huawei">level 2</td><td data-l="Juniper">operator</td><td data-l="MikroTik">write</td><td data-l="Fortinet">rw_admin</td></tr>
+          <tr><td data-l="Access level"><b>Read-only</b><span class="lvl-d">View only, no configuration</span></td><td data-l="Cisco">privilege 1</td><td data-l="Huawei">level 1 (display only)</td><td data-l="Juniper">read-only</td><td data-l="MikroTik">read</td><td data-l="Fortinet">ro_admin</td></tr>
+        </tbody>
+      </table></div>
+      <p class="lvl-note">Which commands a level allows is defined on the device itself. To let read-only users view the full configuration, allow it once per device: Cisco <code>privilege exec level 1 show running-config view full</code>, Huawei <code>command-privilege level 1 view shell display current-configuration</code>.</p>
+    </div>
+  </section>
+{% endblock %}

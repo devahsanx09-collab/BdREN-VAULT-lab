@@ -1,0 +1,20 @@
+{# One set of form fields, used by the three pop-ups in index.html (mode = add, edit or import) #}
+  {% if mode == "import" %}
+  <label class="w">IP list (separate with new line, comma or space)<textarea name="lines" required placeholder="192.168.1.1,192.168.1.2"></textarea></label>
+  {% elif mode == "add" %}
+  <label class="w">IP address — one device, or several separated by commas<input name="ip" required autocomplete="off" spellcheck="false" placeholder="192.168.1.1   or   192.168.1.1, 192.168.1.2, 10.0.0.5"><small class="ipnote" data-ipcount hidden></small></label>
+  <label>Name (optional)<input name="name" placeholder="Detected from config"></label>
+  {% else %}
+  <label>IP address<input name="ip" required placeholder="192.168.1.1"></label>
+  <label>Name (optional)<input name="name" placeholder="Detected from config"></label>
+  {% endif %}
+  <label>Device type (vendor)<select name="vendor">{% for key, name in vendor_menu %}<option value="{{ key }}">{{ name }}</option>{% endfor %}</select></label>
+  <label>SSH port<input name="port" type="number" min="1" max="65535" value="22"></label>
+  <label>Username<div class="combo"><input name="username" autocomplete="off"><ul class="combo-list" hidden></ul></div></label>
+  <input type="hidden" name="credential_id" value="">
+  <label>Password<div class="pwwrap"><input name="password" type="password" autocomplete="new-password" placeholder="Enter password or select a saved username"><button type="button" class="eye">Show</button></div></label>
+  <label>Enable password (optional)<input name="secret" type="password" autocomplete="new-password"></label>
+  <label>Custom command (optional)<input name="command" placeholder="Overrides the default"></label>
+
+  {% if mode == "edit" %}<label class="ck w" data-group hidden><input type="checkbox"><span></span></label>{% endif %}
+  <div class="act"><button class="b" type="button" data-close>Cancel</button><button class="b p" type="submit">Save</button></div>

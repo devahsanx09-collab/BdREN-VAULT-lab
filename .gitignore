@@ -1,0 +1,28 @@
+# Secrets and per-server data — NEVER commit these.
+# They hold the database password, the encryption key for device passwords, the session key,
+# saved configuration backups and SSH host keys. A fresh clone must start without them:
+# deploy/install.sh creates .env (asking for the few things it needs) and data/ on first run.
+.env
+.env.*
+!.env.example
+*.key
+data/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Runtime output
+staticfiles/
+logs/
+*.log
+*.sqlite3
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

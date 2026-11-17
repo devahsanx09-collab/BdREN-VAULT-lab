@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{# Backup Jobs (/jobs): every backup run with its summary. Data: pages/jobs.js #}
+{% block content %}
+<section id="jobs">
+    <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Every backup run (manual, scheduled or for new devices) with its result, duration and the devices that need attention." %}</div>
+      <div class="tacts"><button class="b" id="jobsRefresh" type="button">Refresh</button><button class="b p op" id="jobsRunAll" type="button">Back up all devices</button></div></div>
+    <div class="kpis" id="jobsKpis"></div>
+    <div id="jobsRetry"></div>
+    <div id="jobsList"></div>
+  </section>
+{% endblock %}

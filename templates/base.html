@@ -1,0 +1,111 @@
+{% load static %}<!doctype html>
+{% comment %}
+  The frame of every screen: side menu, top bar, shared pop-ups and scripts.
+  A screen fills {% block content %}; which screen is open comes from apps/core/pages.py (variable `page`).
+  Scripts: every file loads on every screen (one cached set); the open screen is on <body data-page="...">
+  and core/start.js loads only that screen's data. Change ?v= when a CSS / JS file changes.
+{% endcomment %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="same-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ page.title }} · VAULT</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#080e1c" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" href="{% static 'img/bdren-logo.png' %}">
+<link rel="stylesheet" href="{% static 'css/app.css' %}?v=116">
+</head>
+<body class="r-{{ request.user.role }}" data-page="{% if denied %}denied{% else %}{{ page.key }}{% endif %}" data-idle-timeout-ms="{{ session_idle_ms|default:900000 }}"{% if device_id %} data-device-id="{{ device_id }}"{% endif %}{% if denied %} data-denied="1"{% endif %}>
+<script src="{% static 'js/core/early.js' %}?v=116"></script>
+<div class="shell">
+<div class="scrim" id="scrim"></div>
+
+{# ===================== side menu (built from apps/core/pages.py for this user's role) ===================== #}
+<aside class="side" id="side" aria-label="Main menu">
+  <div class="brand">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M12 10v4"/></svg></div>
+    <div class="bt"><b>VAULT</b><span>Network Backup &amp; AAA</span></div>
+    <button type="button" class="collapse" id="colBtn" title="Minimize menu" aria-label="Minimize menu" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+  </div>
+  <nav>
+    {% for g in menu %}
+    <div class="grp">{{ g.group }}</div>
+    {% for item in g.items %}
+      {% if item.pages %}
+      <div class="dd{% if page.submenu == item.submenu %} has-on{% endif %}" data-dd="{{ item.submenu|slugify }}">
+        <button title="{{ item.submenu }}" type="button" class="nav-i dd-t" aria-expanded="false" aria-controls="dd-{{ item.submenu|slugify }}">{% include "components/icons/"|add:item.icon|add:".svg" %}<span>{{ item.submenu }}</span>{% include "components/icons/chevron.svg" %}</button>
+        <div class="dd-m" id="dd-{{ item.submenu|slugify }}" hidden>
+          {% for p in item.pages %}
+          <a class="nav-i{% if p.key == page.key %} on{% endif %}" href="/{{ p.path }}" title="{{ p.title }}" data-tab="{{ p.key }}" data-title="{{ p.title }}" data-group="{{ p.group }}"{% if p.key == page.key %} aria-current="page"{% endif %}>{% include "components/icons/"|add:p.icon|add:".svg" %}<span>{{ p.title }}</span></a>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <a class="nav-i{% if item.key == page.key or item.key == 'devices' and page.key == 'device' %} on{% endif %}" href="/{{ item.path }}" title="{{ item.title }}" data-tab="{{ item.key }}" data-title="{{ item.title }}" data-group="{{ item.group }}"{% if item.key == page.key %} aria-current="page"{% endif %}>{% include "components/icons/"|add:item.icon|add:".svg" %}<span>{{ item.title }}</span></a>
+      {% endif %}
+    {% endfor %}
+    {% endfor %}
+  </nav>
+</aside>
+
+{# ===================== top bar ===================== #}
+<header class="appbar">
+  <button type="button" class="burger" id="menuBtn" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="crumbs"><span id="pageGroup">{{ page.group }}</span><span class="sep" aria-hidden="true">/</span><b class="pg" id="pageName">{{ page.title }}</b></div>
+  <button type="button" class="gsearch" id="gsBtn" aria-haspopup="dialog" aria-keyshortcuts="Control+K" title="Search devices and pages (Ctrl+K)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Search devices, IPs, pages&hellip;</span><kbd>Ctrl K</kbd></button>
+  <span class="sp"></span>
+  <span class="livechip" title="Data on this page refreshes automatically; only values that change are updated"><i aria-hidden="true"></i>Live</span>
+  <button type="button" class="jobchip" id="jobChip" title="Open Device Inventory to follow the backup" hidden><span class="spin" aria-hidden="true"></span><span id="jobChipTx">Backup running</span></button>
+  <details class="notif" id="notifMenu">
+    <summary aria-label="Notifications" title="Problems that need attention"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="notif-badge" id="notifBadge" hidden>0</span></summary>
+    <div class="notif-pop">
+      <div class="notif-head"><b>Notifications</b><button type="button" class="link" id="notifRefresh">Refresh</button></div>
+      <div id="notifList"></div>
+    </div>
+  </details>
+  <details class="umenu" id="userMenu">
+    <summary aria-label="Account menu"><span class="av" id="meAv">{{ request.user.username|first|upper }}</span><span class="wt"><b id="meName">{{ request.user.username }}</b><span class="role" id="meRole">{{ role_label }}</span></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <div class="umenu-pop">
+      <button type="button" id="sndBtn" title="Notification sound" aria-pressed="true"><svg id="sndIc" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg><span id="sndTx">Sound on</span></button>
+      <button type="button" id="pwBtn" title="Change password"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Change password</span></button>
+      <hr>
+      <button type="button" id="outBtn" title="Sign out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Sign out</span></button>
+    </div>
+  </details>
+</header>
+
+{# ===================== the open screen ===================== #}
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+</div>
+
+{# ===================== pop-ups used from several screens ===================== #}
+{% include "components/dialogs.html" %}
+{% include "radius/_dialogs.html" %}
+
+{{ vmeta|json_script:"vendors-data" }}
+{{ page_urls|json_script:"page-urls" }}
+{# core first, then one file per screen, then search / start / responsive (start.js must stay after every loader) #}
+<script src="{% static 'js/core/helpers.js' %}?v=116"></script>
+<script src="{% static 'js/core/menu.js' %}?v=116"></script>
+<script src="{% static 'js/core/account.js' %}?v=116"></script>
+<script src="{% static 'js/core/notifications.js' %}?v=116"></script>
+<script src="{% static 'js/pages/dashboard.js' %}?v=116"></script>
+<script src="{% static 'js/pages/devices.js' %}?v=116"></script>
+<script src="{% static 'js/core/backup-jobs.js' %}?v=116"></script>
+<script src="{% static 'js/pages/backups.js' %}?v=116"></script>
+<script src="{% static 'js/pages/logs.js' %}?v=116"></script>
+<script src="{% static 'js/pages/users.js' %}?v=116"></script>
+<script src="{% static 'js/pages/settings.js' %}?v=116"></script>
+<script src="{% static 'js/pages/radius.js' %}?v=116"></script>
+<script src="{% static 'js/pages/reports.js' %}?v=116"></script>
+<script src="{% static 'js/pages/jobs.js' %}?v=116"></script>
+<script src="{% static 'js/core/search.js' %}?v=116"></script>
+<script src="{% static 'js/core/start.js' %}?v=116"></script>
+<script src="{% static 'js/core/responsive.js' %}?v=116"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+# Start:  docker compose up -d --build
+# Then open http://<server-ip>:8000  (put a reverse proxy with HTTPS in front for production)
+# .env (copy .env.example) must set DBMS_DB_PASSWORD and DBMS_DB_ROOT_PASSWORD: VAULT keeps every table in MySQL.
+services:
+  dbms:
+    build: .
+    container_name: vault-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    environment:
+      DBMS_DATA: /data
+      HOST: 0.0.0.0
+      DBMS_DB_ENGINE: mysql
+      DBMS_DB_HOST: db
+      DBMS_DB_PORT: "3306"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - dbms-data:/data  # backups and encryption keys - keep this volume safe
+    cap_add:
+      - NET_RAW          # needed for ICMP ping monitoring
+
+  # MySQL 8: every VAULT table (devices, jobs, logs, settings, users, sessions)
+  db:
+    image: mysql:8.0
+    container_name: vault-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DBMS_DB_NAME:-dbms}
+      MYSQL_USER: ${DBMS_DB_USER:-dbms}
+      MYSQL_PASSWORD: ${DBMS_DB_PASSWORD:?set DBMS_DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DBMS_DB_ROOT_PASSWORD:?set DBMS_DB_ROOT_PASSWORD in .env}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DBMS_DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  dbms-data:
+  mysql-data:

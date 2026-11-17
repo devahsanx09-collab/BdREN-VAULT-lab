@@ -1,0 +1,44 @@
+{# Pop-ups of the RADIUS Admin pages. Inline scripts are blocked by the Content-Security-Policy; see static/js/radius.js. #}
+{# Device-type suggestions (Core router, Distribution router, ... and any custom label already in use) for every
+   "Device type" field below; typing filters the list and anything typed that is not in it is still accepted. #}
+<datalist id="radRoleList"></datalist>
+<dialog id="rudlg">
+  <div class="dh"><h2 id="ruTitle">Add RADIUS user</h2><button class="x" type="button" data-close-dlg="rudlg" aria-label="Close">&times;</button></div>
+  <form method="dialog" id="rufrm">
+    <label>Username<input name="username" autocomplete="off" maxlength="64" required></label>
+    <label>Access level<select name="level"></select></label>
+    <label class="w">Password<div class="pwwrap"><input name="password" type="password" autocomplete="new-password" maxlength="253"><button type="button" class="eye">Show</button></div></label>
+    <div class="cw">
+      <div class="cl" id="ruPickLabel">Where this user can log in</div>
+      <details class="pick" id="ruPick">
+        <summary aria-labelledby="ruPickLabel ruPickTx"><span id="ruPickTx">All devices</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="devpick" id="ruPickBody">
+          <div class="pk-search"><input id="ruPickQ" type="search" autocomplete="off" placeholder="Search device types or devices" aria-label="Search device types or devices"></div>
+          <div class="pk-body">
+            <label class="ck all"><input type="checkbox" data-all> <span>All devices</span><small>no limit</small></label>
+            <div id="ruTypeSec"><div class="pk-h">Device types <span>also covers devices of this type added later</span></div><div class="pk-list" id="ruTypeList"></div></div>
+            <div id="ruDevSec"><div class="pk-h">Individual devices</div><div class="pk-list" id="ruDevList"></div></div>
+            <p class="pk-none" id="ruPickNone" hidden>Nothing matches the search.</p>
+          </div>
+        </div>
+      </details>
+      <div class="ru-access" id="ruAccessNote" aria-live="polite"></div>
+    </div>
+    <p class="hint">Usernames may use letters, digits and . _ @ - only. Passwords need at least 8 characters. This is the login used on the network devices, not the login of this website.</p>
+    <div class="act"><button class="b" type="button" data-close-dlg="rudlg">Cancel</button><button class="b p" type="submit">Save</button></div>
+  </form>
+</dialog>
+<dialog id="rndlg">
+  <div class="dh"><h2>Add RADIUS devices</h2><button class="x" type="button" data-close-dlg="rndlg" aria-label="Close">&times;</button></div>
+  <form method="dialog" id="rnfrm">
+    <label class="w">Device IP / network<input name="nasname" autocomplete="off" maxlength="6000" required placeholder="10.0.0.1   or   10.0.0.1, 10.0.0.2, 10.0.0.3   or   10.0.0.0/24"></label>
+    <label class="w">Name<input name="name" autocomplete="off" maxlength="8000" placeholder="core-sw-01   or   core-sw-01, core-sw-02, core-sw-03"></label>
+    <p class="hint w rn-count" id="rnCount" aria-live="polite">One device: one IP and one name. Several: separate them with commas, names in the same order as the IPs. Leave Name empty to use the IPs as names.</p>
+    <label>Vendor<select name="vendor"></select></label>
+    <label>Device type<input name="role" list="radRoleList" autocomplete="off" maxlength="50" placeholder="Core router, Distribution router, ... or type your own"></label>
+    <label>Shared secret<input name="secret" autocomplete="off" maxlength="60" placeholder="Empty = generate a strong one"></label>
+    <label class="w">Description<input name="description" autocomplete="off" maxlength="200" placeholder="Optional, the same for every device added now"></label>
+    <p class="hint">All devices added together use the same shared secret, vendor and device type. IPs that are already in NAS Clients are skipped and left unchanged. Single IPs work immediately; a network (CIDR) entry restarts FreeRADIUS once (about a second).</p>
+    <div class="act"><button class="b" type="button" data-close-dlg="rndlg">Cancel</button><button class="b p" type="submit" id="rnSubmit">Add device</button></div>
+  </form>
+</dialog>
