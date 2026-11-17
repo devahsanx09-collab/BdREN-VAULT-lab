@@ -43,6 +43,7 @@ echo "Output : $OUT"
 
 rm -rf "$OUT"; mkdir -p "$OUT"
 rsync -a --exclude='.venv/' --exclude='data/' --exclude='logs/' --exclude='staticfiles/' \
+         --exclude='.env' --exclude='*.key' \
          --exclude='__pycache__/' --exclude='*.pyc' --exclude='.git/' --exclude='*.zip' \
          "$SRC/" "$OUT/"
 
