@@ -95,14 +95,14 @@ server and updates an existing one.
 
 **From a release package**
 ```bash
-unzip -o BdREN-VAULT.zip -d /tmp/dbms-new
-sudo bash /tmp/dbms-new/dbms/deploy/install.sh
+unzip -o BdREN-VAULT.zip -d /tmp/bdren-vault
+sudo bash /tmp/bdren-vault/deploy/install.sh
 ```
 
 **From a Git clone**
 ```bash
-git clone <your-repo-url> dbms
-sudo bash dbms/deploy/install.sh
+git clone <your-repo-url> bdren-vault
+sudo bash bdren-vault/deploy/install.sh
 ```
 
 On a **new install** the installer asks its few questions once — browser address, database password
@@ -121,7 +121,7 @@ migrates the database and restarts — and rolls back automatically if a migrati
 
 ### Use a domain name with a free HTTPS certificate
 ```bash
-sudo bash /opt/dbms/deploy/set-domain.sh backup.example.com you@example.com
+sudo bash /opt/bdren-vault/deploy/set-domain.sh backup.example.com you@example.com
 ```
 Point a DNS **A record** at the server and make sure ports **80 and 443** are reachable. A Let's Encrypt
 certificate is issued and renewed automatically (a self-signed one is used until that is possible).
@@ -158,8 +158,8 @@ or **Reject**. Every attempt appears under **Authentication Audit**.
 - The pages read and write the FreeRADIUS database (`radcheck`, `radusergroup`, `radgroupreply`, `nas`,
   `radpostauth`) over a second connection named `radius` (`RADIUS_DB_*` in `.env`).
 - Shared secrets are hidden — an administrator sees one only after pressing Show or Copy, and that is logged.
-- Per-device limits are stored in `dbms_user_nas` and enforced by a small FreeRADIUS policy
-  (`deploy/radius/dbms_device_limit`).
+- Per-device limits are stored in `bdren-vault_user_nas` and enforced by a small FreeRADIUS policy
+  (`deploy/radius/bdren-vault_device_limit`).
 - **Firewall:** `sudo bash deploy/radius/enable_firewall_sync.sh` (the installer runs it too) keeps
   UDP 1812/1813 open only for the devices on NAS Clients — adding a device opens its address within
   seconds, removing it closes it. The app runs a root-owned script that takes no arguments and reads the
