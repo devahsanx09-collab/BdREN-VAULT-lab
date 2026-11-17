@@ -81,7 +81,7 @@ printf "${c_b}VAULT - %s${c_0}\n" "$([ $MODE = install ] && echo "new installati
 # Each answer falls back to its old inline question when this block is skipped (update, --yes, no TTY,
 # or an existing .env), so nothing else changes.
 PRE_ADDR=""; PRE_DB_PASS=""; PRE_ADMIN_USER=""; PRE_ADMIN_PASS=""
-PRE_WANT_RADIUS=""; PRE_WANT_HTTPS=""; PRE_DOMAIN=""; PRE_DOMAIN_EMAIL=""
+PRE_WANT_RADIUS=""; PRE_WANT_HTTPS=""; PRE_DOMAIN=""; PRE_DOMAIN_EMAIL=""; PRE_WANT_UFW=""
 if [ "$MODE" = install ] && [ "$ASSUME_YES" != 1 ] && [ -t 0 ] && [ ! -f "$APP_DIR/.env" ]; then
   step "A few questions (asked once; then the whole install runs on its own)"
   ip_guess="$(hostname -I 2>/dev/null | awk '{print $1}')"
@@ -95,6 +95,7 @@ if [ "$MODE" = install ] && [ "$ASSUME_YES" != 1 ] && [ -t 0 ] && [ ! -f "$APP_D
     PRE_DOMAIN="$(ask "Domain name, e.g. backup.example.com (press Enter to use the IP only)" "")"
     [ -n "$PRE_DOMAIN" ] && PRE_DOMAIN_EMAIL="$(ask "Email for certificate expiry notices (Enter = none)" "")"
   else PRE_WANT_HTTPS=n; fi
+  if [ "$(ask "Turn on the ufw firewall? SSH, the web and RADIUS stay open; everything else is blocked (y/n)" "y")" = y ]; then PRE_WANT_UFW=y; else PRE_WANT_UFW=n; fi
   ok "Thank you. Installing the whole project now - no more questions."
 fi
 
@@ -428,6 +429,25 @@ if command -v nginx >/dev/null 2>&1; then
       for k in DBMS_SECURE_COOKIES DBMS_FORCE_HTTPS; do [ "$(env_get $k)" = 1 ] || { env_set $k 1; ok "$k=1 (site uses HTTPS)"; }; done
     fi
   else warn "no nginx site proxies to port $PORT yet: see deploy/nginx-dbms.conf"; fi
+fi
+
+# ---- 8b. optional: turn on the ufw firewall (SSH, web and RADIUS stay open) ---------------------------
+if command -v ufw >/dev/null 2>&1 && ! ufw status 2>/dev/null | grep -q "Status: active"; then
+  DO_UFW=0
+  if [ -n "$PRE_WANT_UFW" ]; then [ "$PRE_WANT_UFW" = y ] && DO_UFW=1
+  elif [ "$MODE" = install ] && [ "$(ask "Turn on the ufw firewall now (SSH, web and RADIUS stay open, the rest is blocked)? (y/n)" "y")" = y ]; then DO_UFW=1; fi
+  if [ "$DO_UFW" = 1 ]; then
+    step "Firewall (ufw)"
+    # allow SSH FIRST so enabling the firewall never locks the admin out
+    ufw allow OpenSSH >/dev/null 2>&1 || true
+    ufw allow 22/tcp  >/dev/null 2>&1 || true
+    if command -v nginx >/dev/null 2>&1; then ufw allow 80/tcp >/dev/null 2>&1 || true; ufw allow 443/tcp >/dev/null 2>&1 || true; fi
+    if ufw --force enable >/dev/null 2>&1; then
+      ok "firewall on (SSH and web stay open)"
+      # open RADIUS 1812/1813 only for the devices on NAS Clients (none yet = closed until you add them)
+      [ -x /usr/local/sbin/dbms-radius-firewall ] && { /usr/local/sbin/dbms-radius-firewall >/dev/null 2>&1 || true; ok "RADIUS 1812-1813/udp opened for NAS Clients devices only"; }
+    else warn "could not turn on ufw; later run:  sudo ufw allow OpenSSH && sudo ufw enable"; fi
+  fi
 fi
 
 # ---- 9. start and check ------------------------------------------------------------------------------

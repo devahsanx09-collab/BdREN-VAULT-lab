@@ -17,7 +17,7 @@ sudo bash dbms/deploy/install.sh
 Or from a release package:
 
 ```bash
-unzip -o BdREN-VAULT.zip -d /tmp/dbms
+unzip -o BdREN-VAULT.zip -d /tmp/dbms-new
 ```
 ```bash
 sudo bash /tmp/dbms-new/dbms/deploy/install.sh
