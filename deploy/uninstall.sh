@@ -30,7 +30,7 @@ if [ "$YES" != 1 ]; then
 fi
 
 for s in vault dbms; do systemctl stop "$s" 2>/dev/null; systemctl disable "$s" 2>/dev/null; done
-rm -f /etc/systemd/system/vault.service /etc/systemd/system/vault.service; systemctl daemon-reload 2>/dev/null; ok "service removed"
+rm -f /etc/systemd/system/vault.service /etc/systemd/system/dbms.service; systemctl daemon-reload 2>/dev/null; ok "service removed"
 
 mysql -u root -e "DROP DATABASE IF EXISTS \`$DBN\`; DROP DATABASE IF EXISTS \`$RDB\`; DROP USER IF EXISTS '$DBU'@'localhost'; DROP USER IF EXISTS '$RUSER'@'localhost'; FLUSH PRIVILEGES;" 2>/dev/null \
   && ok "databases '$DBN' and '$RDB' dropped" || echo "  ! could not drop databases (try: sudo mysql)"
@@ -42,11 +42,11 @@ systemctl reload nginx 2>/dev/null || true; ok "nginx site removed"
 rm -f "$RAD_DIR/mods-enabled/sql"
 rm -f "$RAD_DIR/policy.d/dbms_device_limit" "$RAD_DIR/policy.d/dbms_huawei_levels"
 rm -f "$RAD_DIR/sites-enabled/dbms_dynamic_clients" "$RAD_DIR/sites-available/dbms_dynamic_clients"
-rm -f /etc/sudoers.d/vault-radius /etc/sudoers.d/vault-firewall /usr/local/sbin/vault-radius-firewall
-rm -rf /etc/vault
+rm -f /etc/sudoers.d/vault-radius /etc/sudoers.d/vault-firewall /etc/sudoers.d/dbms-radius /etc/sudoers.d/dbms-firewall /usr/local/sbin/vault-radius-firewall /usr/local/sbin/dbms-radius-firewall
+rm -rf /etc/vault /etc/dbms
 systemctl restart freeradius 2>/dev/null || true; ok "VAULT's FreeRADIUS config removed"
 
-rm -rf "$APP_DIR"; userdel "$SVC_USER" 2>/dev/null || true; ok "application files and the $SVC_USER user removed"
+rm -rf "$APP_DIR" /opt/dbms; userdel "$SVC_USER" 2>/dev/null || true; [ "$SVC_USER" != dbms ] && userdel dbms 2>/dev/null || true; ok "application files and service user removed"
 
 printf "\n${c_g}Done.${c_0} VAULT is removed. For a clean install again:\n"
 printf "  unzip -o ~/BdREN-VAULT.zip -d /tmp && sudo bash /tmp/vault/deploy/install.sh\n"
