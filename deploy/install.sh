@@ -237,7 +237,7 @@ if [ "$WANT_RADIUS" = 1 ]; then
 
   RPASS="$(env_get RADIUS_DB_PASSWORD)"
   if [ -z "$RPASS" ] || [ "$RPASS" = "change-me" ]; then
-    # new RADIUS database + user, the FreeRADIUS tables, and the sql module pointing at it
+    # new RADIUS database + user and the FreeRADIUS tables (the sql module is written by setup_sql.sh below)
     RDB="$(env_get RADIUS_DB_NAME)"; RDB="${RDB:-radius}"; RUSER="$(env_get RADIUS_DB_USER)"; RUSER="${RUSER:-radius}"
     RPASS="$(head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)"
     mysql -u root <<SQL || die "Could not create the RADIUS database as the MariaDB root user (run: sudo mysql)."
@@ -254,50 +254,6 @@ SQL
     env_set RADIUS_DB_NAME "$RDB"; env_set RADIUS_DB_USER "$RUSER"; env_set RADIUS_DB_PASSWORD "$RPASS"
     env_set RADIUS_DB_HOST 127.0.0.1; env_set RADIUS_DB_PORT 3306
     ok "RADIUS database ready (password generated and stored in .env)"
-    # sql module: our own complete file (the packaged one has a mysql TLS block that blocks local connections)
-    [ -f "$RAD_DIR/mods-available/sql" ] && cp -p "$RAD_DIR/mods-available/sql" "$RAD_DIR/mods-available/sql.dist-$STAMP"
-    cat > "$RAD_DIR/mods-available/sql" <<CONF
-# Written by VAULT deploy/install.sh ($STAMP); the original is sql.dist-$STAMP
-sql {
-	dialect = "mysql"
-	driver = "rlm_sql_mysql"
-	mysql {
-		warnings = auto
-	}
-	server = "localhost"
-	port = 3306
-	login = "$RUSER"
-	password = "$RPASS"
-	radius_db = "$RDB"
-	acct_table1 = "radacct"
-	acct_table2 = "radacct"
-	postauth_table = "radpostauth"
-	authcheck_table = "radcheck"
-	groupcheck_table = "radgroupcheck"
-	authreply_table = "radreply"
-	groupreply_table = "radgroupreply"
-	usergroup_table = "radusergroup"
-	delete_stale_sessions = yes
-	pool {
-		start = \${thread[pool].start_servers}
-		min = \${thread[pool].min_spare_servers}
-		max = \${thread[pool].max_servers}
-		spare = \${thread[pool].max_spare_servers}
-		uses = 0
-		retry_delay = 30
-		lifetime = 0
-		idle_timeout = 60
-	}
-	# NAS clients come from the "nas" table, managed on the RADIUS / AAA -> NAS Clients page
-	read_clients = yes
-	client_table = "nas"
-	group_attribute = "sql-SQL-Group"
-	\$INCLUDE \${modconfdir}/\${.:name}/main/\${dialect}/queries.conf
-}
-CONF
-    chown root:freerad "$RAD_DIR/mods-available/sql"; chmod 640 "$RAD_DIR/mods-available/sql"
-    ln -sf ../mods-available/sql "$RAD_DIR/mods-enabled/sql"
-    ok "FreeRADIUS connected to its database"
   else ok "existing RADIUS database settings kept"; fi
 
   # Always point FreeRADIUS at its database, even when the password already existed (writes the sql
