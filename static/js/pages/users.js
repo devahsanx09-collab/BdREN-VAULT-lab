@@ -37,12 +37,12 @@ function renderSignins(){
     <div class="kpi"><small>Failed attempts, last 24 h</small><strong class="${s.failed_24h?"r":"g"}">${s.failed_24h}</strong><span class="d">Wrong password or unknown user</span></div>`);
   const IP_FIX={
     setting_off:`<b>Sign-ins show the server's own address (127.0.0.1).</b> The website runs behind nginx, and the app does not trust nginx yet.
-      Add this line to /opt/dbms/.env, then restart the service:<code>DBMS_BEHIND_PROXY=1</code>`,
+      Add this line to /opt/vault/.env, then restart the service:<code>DBMS_BEHIND_PROXY=1</code>`,
     header_missing:`<b>Sign-ins show 127.0.0.1 because nginx does not pass on the visitor's address.</b> The app is ready (DBMS_BEHIND_PROXY is on).
       In the nginx site for this website, inside <i>location / { … }</i> next to <i>proxy_pass</i>, add these lines, then run <i>sudo nginx -t &amp;&amp; sudo systemctl reload nginx</i>:
       <code>proxy_set_header X-Forwarded-For $remote_addr;<br>proxy_set_header X-Forwarded-Proto $scheme;<br>proxy_set_header X-Forwarded-Host $host;</code>`,
     not_applied:`<b>nginx sends the visitor's address, but the app does not use it yet.</b> Restart the service so the setting takes effect
-      (<i>sudo systemctl restart dbms</i>). The service must start the app with <i>manage.py serve</i>, as in deploy/dbms.service.`
+      (<i>sudo systemctl restart vault</i>). The service must start the app with <i>manage.py serve</i>, as in deploy/vault.service.`
   };
   $("#signinNote").innerHTML=IP_FIX[d.ip_diag]?`<div class="rad-note">${IP_FIX[d.ip_diag]}<br>New sign-ins then show the real IP address; older entries keep 127.0.0.1.</div>`:"";
   $("#signinCount").textContent=`${d.rows.length}${d.rows.length>=1000?"+":""} event${d.rows.length===1?"":"s"}`;

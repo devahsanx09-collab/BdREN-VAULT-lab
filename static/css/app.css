@@ -578,7 +578,7 @@ pre .r,.l.r{color:#ff9aa2;background:rgba(239,68,68,.12)}
 .schedule-toggle strong{font-size:13.5px}
 .schedule-toggle small{font-size:12.5px;color:var(--mute);font-weight:400}
 .fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:12px}
-.schedule-config-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:start;margin:16px 0}
+.schedule-config-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));align-items:start;margin:16px 0}   /* wide enough for "Monthly — selected dates" */
 .schedule-config-grid>label{font-weight:600}
 .schedule-config-grid #lDays,.schedule-mode-help{grid-column:1/-1}
 .schedule-mode-help{margin:0;padding:11px 13px;border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--r-xs);background:var(--soft);color:var(--mute);font-size:12.5px}
@@ -734,10 +734,6 @@ main>section:not([hidden]){animation:fadeUp .2s var(--ease) both}
 /* moving between screens: the browser cross-fades the old page into the new one (menu and top bar stay
    put), instead of a blank flash. Browsers without it simply load the page as before. */
 @view-transition{navigation:auto}
-/* keep the sidebar and top bar still across page loads; only the content cross-fades */
-.side{view-transition-name:v-side}.appbar{view-transition-name:v-bar}#main{view-transition-name:v-main}
-::view-transition-old(v-side),::view-transition-new(v-side),::view-transition-old(v-bar),::view-transition-new(v-bar){animation:none}
-::view-transition-old(v-main),::view-transition-new(v-main){animation-duration:.17s}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}
 /* tiles and charts animate on the first draw only (dashboard.js adds .charts-ready afterwards),
    so the 30-second refresh never makes them flash */

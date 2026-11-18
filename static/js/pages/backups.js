@@ -76,8 +76,8 @@ function renderBackups(){
   const {rows:g,bar}=paginate("backups",filtered);
   const focusBar=bkFocus?`<div class="row" style="background:var(--soft);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;padding:10px 16px;gap:10px;align-items:center"><span>Showing backups of only <b>${esc(bkFocus)}</b></span><span class="sp"></span><button type="button" class="b" data-a="unfocus">Show all devices</button></div>`:"";
   $("#bkList").innerHTML=focusBar+(filtered.length?g.map(d=>{
-    const older=d.count-1;
-    return `<div class="group"><h3><input type="checkbox" class="bksel" value="${esc(d.name)}"${selBk.has(d.name)?" checked":""} aria-label="Select ${esc(d.name)}"><button class="link tree-open" ${bkAttr("tree",d.name,"")}>📁 ${esc(d.name)}</button><span>${d.count} saved version${d.count===1?"":"s"} &middot; last backup ${esc(fmtBdDateTime(d.latest.time))}</span><button class="link d adm" style="margin-left:auto" ${bkAttr("delall",d.name,"")}>Delete all versions</button></h3>`
+    const older=Math.max(0,(d.count||0)-1);      /* a folder with no saved file has no older versions (never "-1") */
+    return `<div class="group"><h3><input type="checkbox" class="bksel" value="${esc(d.name)}"${selBk.has(d.name)?" checked":""} aria-label="Select ${esc(d.name)}"><button class="link tree-open" ${bkAttr("tree",d.name,"")}>📁 ${esc(d.name)}</button><span>${d.count} saved version${d.count===1?"":"s"} &middot; last backup ${esc(fmtBdDateTime(d.latest.time))}</span>${d.count?`<button class="link d adm" style="margin-left:auto" ${bkAttr("delall",d.name,"")}>Delete all versions</button>`:""}</h3>`
       +(d.count?bkRow(d.name,d.latest,d.previous,true):`<div class="row"><span class="t">No configuration backup saved yet.</span></div>`)+`<div class="older"></div><div class="device-tree" data-tree="${esc(d.name)}" hidden></div>`
       +(older?`<div class="row"><button class="link" ${bkAttr("more",d.name,"")} data-n="${older}">Show older versions (${older})</button></div>`:"")+`</div>`;
   }).join("")+bar

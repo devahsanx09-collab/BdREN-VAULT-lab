@@ -49,7 +49,7 @@ function paintRadViolations(){
     <ul>${radViolations.map(v=>`<li><b>${esc(v.username)}</b> on ${esc(v.device||"unknown device")} <span class="m">(${esc(v.ip)})</span> - ${v.count} login${v.count===1?"":"s"}, last at ${esc(v.last)}</li>`).join("")}</ul>
     (An entry disappears as soon as FreeRADIUS refuses that user on that device, and after 24 hours at the latest.)<br>
     Usually the "where this user can log in" rule is not installed in FreeRADIUS. Install it once on the server (this also checks and restarts FreeRADIUS):
-    <code>sudo bash /opt/dbms/deploy/install.sh</code>If the rule is installed, the device sends its requests from a different address than the one in NAS Clients: register that address.</div>`:"";
+    <code>sudo bash /opt/vault/deploy/install.sh</code>If the rule is installed, the device sends its requests from a different address than the one in NAS Clients: register that address.</div>`:"";
 }
 function renderRadUsers(){
   paintRadViolations();
@@ -175,7 +175,7 @@ async function loadRadNas(){
     let warn=$("#radReloadWarn");if(!warn){warn=document.createElement("div");warn.id="radReloadWarn";$("#radNasList").before(warn)}
     warn.innerHTML=d.reload_ok===false?`<div class="rad-note"><b>New switches will not work until FreeRADIUS is restarted by hand.</b>
       FreeRADIUS reads this list only when it starts, and this application is not allowed to restart it. Allow it once on the server:
-      <code>sudo bash /opt/dbms/deploy/install.sh</code>(or install deploy/radius/sudoers-dbms.example as /etc/sudoers.d/dbms-radius). Until then run <i>sudo systemctl restart freeradius</i> after adding or removing a switch.</div>`:"";
+      <code>sudo bash /opt/vault/deploy/install.sh</code>(or install deploy/radius/sudoers-dbms.example as /etc/sudoers.d/vault-radius). Until then run <i>sudo systemctl restart freeradius</i> after adding or removing a switch.</div>`:"";
     $("#rnfrm").elements.vendor.innerHTML=radOptions(radVendors);
     paintRadRoleList();
     renderRadNas();
@@ -533,7 +533,7 @@ function renderRadEvents(){
 }
 function renderRadLogins(){
   $("#radLoginNote").innerHTML=radLoggingOn?"":`<div class="rad-note"><b>The device is not recorded yet.</b> FreeRADIUS's standard login table stores only the user, result and time.
-    Run this once on the server to record the device of every new login:<code>sudo bash /opt/dbms/deploy/radius/enable_login_log.sh</code>Logins before that keep an empty Device column.</div>`;
+    Run this once on the server to record the device of every new login:<code>sudo bash /opt/vault/deploy/radius/enable_login_log.sh</code>Logins before that keep an empty Device column.</div>`;
   const res=$("#radLoginRes")?.value||"ALL";
   const list=radLogins.filter(r=>res==="ALL"||(res==="accept")===radAccepted(r));
   const q=($("#radLoginQ")?.value||"").trim();

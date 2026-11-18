@@ -16,10 +16,10 @@
 <meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#080e1c" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" href="{% static 'img/bdren-logo.png' %}">
-<link rel="stylesheet" href="{% static 'css/app.css' %}?v=117">
+<link rel="stylesheet" href="{% static 'css/app.css' %}?v=119">
 </head>
 <body class="r-{{ request.user.role }}" data-page="{% if denied %}denied{% else %}{{ page.key }}{% endif %}" data-idle-timeout-ms="{{ session_idle_ms|default:900000 }}"{% if device_id %} data-device-id="{{ device_id }}"{% endif %}{% if denied %} data-denied="1"{% endif %}>
-<script src="{% static 'js/core/early.js' %}?v=119"></script>
+<script src="{% static 'js/core/early.js' %}?v=121"></script>
 <div class="shell">
 <div class="scrim" id="scrim"></div>
 
@@ -90,22 +90,22 @@
 {{ vmeta|json_script:"vendors-data" }}
 {{ page_urls|json_script:"page-urls" }}
 {# core first, then one file per screen, then search / start / responsive (start.js must stay after every loader) #}
-<script src="{% static 'js/core/helpers.js' %}?v=119"></script>
-<script src="{% static 'js/core/menu.js' %}?v=119"></script>
-<script src="{% static 'js/core/account.js' %}?v=119"></script>
-<script src="{% static 'js/core/notifications.js' %}?v=119"></script>
-<script src="{% static 'js/pages/dashboard.js' %}?v=119"></script>
-<script src="{% static 'js/pages/devices.js' %}?v=119"></script>
-<script src="{% static 'js/core/backup-jobs.js' %}?v=119"></script>
-<script src="{% static 'js/pages/backups.js' %}?v=119"></script>
-<script src="{% static 'js/pages/logs.js' %}?v=119"></script>
-<script src="{% static 'js/pages/users.js' %}?v=119"></script>
-<script src="{% static 'js/pages/settings.js' %}?v=119"></script>
-<script src="{% static 'js/pages/radius.js' %}?v=119"></script>
-<script src="{% static 'js/pages/reports.js' %}?v=119"></script>
-<script src="{% static 'js/pages/jobs.js' %}?v=119"></script>
-<script src="{% static 'js/core/search.js' %}?v=119"></script>
-<script src="{% static 'js/core/start.js' %}?v=119"></script>
-<script src="{% static 'js/core/responsive.js' %}?v=119"></script>
+<script src="{% static 'js/core/helpers.js' %}?v=121"></script>
+<script src="{% static 'js/core/menu.js' %}?v=121"></script>
+<script src="{% static 'js/core/account.js' %}?v=121"></script>
+<script src="{% static 'js/core/notifications.js' %}?v=121"></script>
+<script src="{% static 'js/pages/dashboard.js' %}?v=121"></script>
+<script src="{% static 'js/pages/devices.js' %}?v=121"></script>
+<script src="{% static 'js/core/backup-jobs.js' %}?v=121"></script>
+<script src="{% static 'js/pages/backups.js' %}?v=121"></script>
+<script src="{% static 'js/pages/logs.js' %}?v=121"></script>
+<script src="{% static 'js/pages/users.js' %}?v=121"></script>
+<script src="{% static 'js/pages/settings.js' %}?v=121"></script>
+<script src="{% static 'js/pages/radius.js' %}?v=121"></script>
+<script src="{% static 'js/pages/reports.js' %}?v=121"></script>
+<script src="{% static 'js/pages/jobs.js' %}?v=121"></script>
+<script src="{% static 'js/core/search.js' %}?v=121"></script>
+<script src="{% static 'js/core/start.js' %}?v=121"></script>
+<script src="{% static 'js/core/responsive.js' %}?v=121"></script>
 </body>
 </html>

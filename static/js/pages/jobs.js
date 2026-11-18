@@ -4,7 +4,8 @@
    Refreshes itself every 4 s while a job runs. Loaded by templates/base.html on every screen. */
 
 let jobsData=null,jobsTimer=0;
-const fmtDur=s=>{if(s==null)return "-";s=Math.round(s);if(s<60)return s+" s";const m=Math.floor(s/60);if(m<60)return `${m} min ${s%60} s`;return `${Math.floor(m/60)} h ${m%60} min`};
+const fmtDur=s=>{if(s==null||s<0)return "-";      /* negative = clock/time-zone mismatch in old data: show "-", never "-234001 s" */
+s=Math.round(s);if(s<60)return s+" s";const m=Math.floor(s/60);if(m<60)return `${m} min ${s%60} s`;return `${Math.floor(m/60)} h ${m%60} min`};
 
 async function loadJobs(){
   clearTimeout(jobsTimer);
@@ -31,7 +32,7 @@ function renderJobKpis(){
   morph($("#jobsKpis"),
     `<div class="kpi"><small>Last run</small><strong class="sm2">${last?esc(fmtBdDateTime(last.started)):"Never"}</strong><span class="d">${last?esc(last.reason_label):"No backup has run yet"}</span></div>
      <div class="kpi"><small>Last run success</small><strong class="${okRate==null?"":okRate===100?"g":okRate>=90?"w":"r"}">${okRate==null?"-":okRate+"%"}</strong><span class="d">${last?`${(c.SUCCESS||0)+(c.UNCHANGED||0)} of ${last.total} devices`:"Saved or unchanged"}</span></div>
-     <div class="kpi"><small>Last run duration</small><strong>${last?fmtDur(last.duration_s):"-"}</strong><span class="d">${last&&last.duration_s?`${(last.total/Math.max(1,last.duration_s)*60).toFixed(1)} devices per minute`:"Start to finish"}</span></div>
+     <div class="kpi"><small>Last run duration</small><strong>${last?fmtDur(last.duration_s):"-"}</strong><span class="d">${last&&last.duration_s>0?`${(last.total/Math.max(1,last.duration_s)*60).toFixed(1)} devices per minute`:"Start to finish"}</span></div>
      <div class="kpi"><small>Average per device</small><strong>${avg!=null?avg+" s":"-"}</strong><span class="d">SSH login + configuration read</span></div>
      <div class="kpi"><small>Parallel SSH sessions</small><strong>${jobsData.workers}</strong><span class="d">Change in System Settings</span></div>`);
 }
