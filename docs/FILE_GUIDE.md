@@ -96,7 +96,7 @@ static/
 deploy/
   install.sh             One command: install a new server or update an existing one
   set-domain.sh          Add a domain name with a Let's Encrypt certificate
-  dbms.service           systemd unit
+  vault.service          systemd unit
   nginx-dbms.conf        nginx site (HTTPS)
   radius/                FreeRADIUS policies, enable_*.sh helpers, check_levels.sh (RADIUS health check)
 
@@ -128,4 +128,4 @@ docs/                    ARCHITECTURE, FILE_GUIDE (this file), CONTRIBUTING, DEP
 - `logs/`, `data/`, `staticfiles/` and `__pycache__/` are created at run time; they are not source code.
 - After changing a CSS or JS file, raise every `?v=` number in `templates/base.html` (and in
   `templates/accounts/auth.html` for the sign-in files) so browsers load the new version.
-- Templates are cached in production: restart the service (`sudo systemctl restart dbms`) after changing one.
+- Templates are cached in production: restart the service (`sudo systemctl restart vault`) after changing one.

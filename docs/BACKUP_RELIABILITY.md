@@ -58,7 +58,7 @@ for those that answer. New devices' first backups no longer wait behind this que
 Backup Jobs shows **Waiting to retry** (device, why, since when, attempts, next check), failure messages say
 what VAULT will do next, and the job chip shows the second pass.
 
-## Settings (`/opt/dbms/.env`, then `sudo systemctl restart dbms`)
+## Settings (`/opt/vault/.env`, then `sudo systemctl restart vault`)
 | Variable | Default | Meaning |
 |---|---|---|
 | `DBMS_COMMAND_IDLE_SECONDS` | 180 | give up when the device sends nothing for this long |

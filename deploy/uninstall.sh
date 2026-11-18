@@ -2,13 +2,13 @@
 # Completely remove VAULT from this server: the app, its service, the nginx site, the two databases and the
 # FreeRADIUS configuration VAULT added. Use it to decommission a server, or to start a clean install again.
 #
-#   sudo bash /opt/dbms/deploy/uninstall.sh          # asks you to confirm
-#   sudo bash /opt/dbms/deploy/uninstall.sh --yes    # no prompt
+#   sudo bash /opt/vault/deploy/uninstall.sh          # asks you to confirm
+#   sudo bash /opt/vault/deploy/uninstall.sh --yes    # no prompt
 #
 # WARNING: this DELETES the databases (backups, users, RADIUS data) and the encryption key. It cannot be
 # undone. Only run it when you do not need any of that data.
 set -u
-APP_DIR="${APP_DIR:-/opt/dbms}"; SVC_USER="${SVC_USER:-dbms}"
+APP_DIR="${APP_DIR:-/opt/vault}"; SVC_USER="${SVC_USER:-vault}"
 RAD_DIR=/etc/freeradius/3.0
 YES=0; [ "${1:-}" = "--yes" ] && YES=1
 c_r='\033[1;31m'; c_g='\033[1;32m'; c_0='\033[0m'
@@ -29,8 +29,8 @@ if [ "$YES" != 1 ]; then
   [ "$a" = "REMOVE" ] || { echo "cancelled."; exit 0; }
 fi
 
-systemctl stop dbms 2>/dev/null; systemctl disable dbms 2>/dev/null
-rm -f /etc/systemd/system/dbms.service; systemctl daemon-reload 2>/dev/null; ok "service removed"
+for s in vault dbms; do systemctl stop "$s" 2>/dev/null; systemctl disable "$s" 2>/dev/null; done
+rm -f /etc/systemd/system/vault.service /etc/systemd/system/vault.service; systemctl daemon-reload 2>/dev/null; ok "service removed"
 
 mysql -u root -e "DROP DATABASE IF EXISTS \`$DBN\`; DROP DATABASE IF EXISTS \`$RDB\`; DROP USER IF EXISTS '$DBU'@'localhost'; DROP USER IF EXISTS '$RUSER'@'localhost'; FLUSH PRIVILEGES;" 2>/dev/null \
   && ok "databases '$DBN' and '$RDB' dropped" || echo "  ! could not drop databases (try: sudo mysql)"
@@ -42,11 +42,11 @@ systemctl reload nginx 2>/dev/null || true; ok "nginx site removed"
 rm -f "$RAD_DIR/mods-enabled/sql"
 rm -f "$RAD_DIR/policy.d/dbms_device_limit" "$RAD_DIR/policy.d/dbms_huawei_levels"
 rm -f "$RAD_DIR/sites-enabled/dbms_dynamic_clients" "$RAD_DIR/sites-available/dbms_dynamic_clients"
-rm -f /etc/sudoers.d/dbms-radius /etc/sudoers.d/dbms-firewall /usr/local/sbin/dbms-radius-firewall
-rm -rf /etc/dbms
+rm -f /etc/sudoers.d/vault-radius /etc/sudoers.d/vault-firewall /usr/local/sbin/vault-radius-firewall
+rm -rf /etc/vault
 systemctl restart freeradius 2>/dev/null || true; ok "VAULT's FreeRADIUS config removed"
 
 rm -rf "$APP_DIR"; userdel "$SVC_USER" 2>/dev/null || true; ok "application files and the $SVC_USER user removed"
 
 printf "\n${c_g}Done.${c_0} VAULT is removed. For a clean install again:\n"
-printf "  unzip -o ~/BdREN-VAULT.zip -d /tmp/vault && sudo bash /tmp/vault/dbms/deploy/install.sh\n"
+printf "  unzip -o ~/BdREN-VAULT.zip -d /tmp && sudo bash /tmp/vault/deploy/install.sh\n"

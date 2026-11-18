@@ -2,7 +2,7 @@
 # =====================================================================================================
 #  Put the website on a domain name, with a real HTTPS certificate when possible.
 #
-#     sudo bash /opt/dbms/deploy/set-domain.sh backup.example.com you@example.com
+#     sudo bash /opt/vault/deploy/set-domain.sh backup.example.com you@example.com
 #
 #  Before you run it:
 #    1. DNS: an "A" record  backup.example.com -> this server's public IP
@@ -20,11 +20,11 @@
 # =====================================================================================================
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"
+APP_DIR="${APP_DIR:-/opt/vault}"
 DOMAIN="${1:-}"; EMAIL="${2:-}"; SELF_SIGNED=0
 for a in "$@"; do [ "$a" = "--self-signed" ] && SELF_SIGNED=1; done
 [ "$EMAIL" = "--self-signed" ] && EMAIL=""
-STAMP="$(date +%Y%m%d-%H%M%S)"; BACKUP="/var/backups/dbms/domain-$STAMP"
+STAMP="$(date +%Y%m%d-%H%M%S)"; BACKUP="/var/backups/vault/domain-$STAMP"
 
 c_g='\033[1;32m'; c_y='\033[1;33m'; c_r='\033[1;31m'; c_b='\033[1;34m'; c_0='\033[0m'
 step() { printf "\n${c_b}==> %s${c_0}\n" "$*"; }
@@ -47,7 +47,7 @@ add_to_list() { # add_to_list KEY VALUE  (comma-separated list without duplicate
   env_set "$1" "${cur:+$cur,}$2"; }
 
 # ---- which nginx site serves the app ---------------------------------------------------------------
-PORT="$(grep -oE -- '--port[ =]+[0-9]+' /etc/systemd/system/dbms.service 2>/dev/null | grep -oE '[0-9]+' | head -n1 || true)"; PORT="${PORT:-8495}"
+PORT="$(grep -oE -- '--port[ =]+[0-9]+' /etc/systemd/system/vault.service 2>/dev/null | grep -oE '[0-9]+' | head -n1 || true)"; PORT="${PORT:-8495}"
 SITE="$(grep -rlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true)"
 [ -n "$SITE" ] || die "No nginx site forwards to the app on port $PORT. Run deploy/install.sh first."
 SITE="$(readlink -f "$SITE")"
@@ -114,10 +114,10 @@ fi
 
 # ---- secure cookies on HTTPS, restart, check ------------------------------------------------------------
 for k in DBMS_BEHIND_PROXY DBMS_SECURE_COOKIES DBMS_FORCE_HTTPS; do [ "$(env_get $k)" = 1 ] || env_set $k 1; done
-systemctl restart dbms
+systemctl restart vault
 for _ in $(seq 1 20); do curl -fsSk --resolve "$DOMAIN:443:127.0.0.1" -o /dev/null "https://$DOMAIN/healthz" && break; sleep 1; done
 if curl -fsSk --resolve "$DOMAIN:443:127.0.0.1" -o /dev/null "https://$DOMAIN/healthz"; then
   printf "\n${c_g}Done.${c_0} Open https://%s  (the IP address keeps working too)\n" "$DOMAIN"
 else
-  restore; systemctl restart dbms; die "The website did not answer on https://$DOMAIN; previous settings restored (see: journalctl -u dbms -n 50)."
+  restore; systemctl restart vault; die "The website did not answer on https://$DOMAIN; previous settings restored (see: journalctl -u vault -n 50)."
 fi

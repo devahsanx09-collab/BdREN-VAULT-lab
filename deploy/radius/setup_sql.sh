@@ -9,10 +9,10 @@
 # device logins fail. This writes VAULT's own module (no TLS block, read_clients from the "nas" table).
 #
 # deploy/install.sh runs this automatically. You can also run it on its own at any time:
-#     sudo bash /opt/dbms/deploy/radius/setup_sql.sh
+#     sudo bash /opt/vault/deploy/radius/setup_sql.sh
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"
+APP_DIR="${APP_DIR:-/opt/vault}"
 ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
 R="${RAD_DIR:-/etc/freeradius/3.0}"
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }

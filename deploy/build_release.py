@@ -1,6 +1,6 @@
 """Build the release zip of this project:  python deploy/build_release.py [output.zip]
 
-Packs the project folder as dbms/... with forward-slash paths (Linux unzip friendly), leaving out only what
+Packs the project folder as vault/... with forward-slash paths (Linux unzip friendly), leaving out only what
 is created at run time or must never ship:
   - top-level runtime folders: data/, logs/ (an empty logs/README.md is kept), staticfiles/, .venv/, venv/
   - anywhere: __pycache__/, *.pyc, tests.py, .env
@@ -34,7 +34,7 @@ def build(out):
             # Fixed Linux permissions inside the zip: owner may write, everyone else may only read
             # (scripts may also be run). A zip built on Windows otherwise unpacks every program file as
             # rw-rw-rw-, so any other account on the server could change the application's code.
-            info = zipfile.ZipInfo.from_file(p, "dbms/" + p.relative_to(ROOT).as_posix())
+            info = zipfile.ZipInfo.from_file(p, "vault/" + p.relative_to(ROOT).as_posix())
             info.create_system = 3                                   # Unix: unzip applies the mode below
             info.external_attr = (0o100755 if p.suffix == ".sh" else 0o100644) << 16
             info.compress_type = zipfile.ZIP_DEFLATED
@@ -46,7 +46,7 @@ def build(out):
     # every source file that matters must be inside
     must = [p for p in ROOT.rglob("*") if p.is_file() and p.relative_to(ROOT).parts[0] in
             ("apps", "config", "templates", "static", "deploy", "docs") and wanted(p.relative_to(ROOT))]
-    missing = [p.relative_to(ROOT).as_posix() for p in must if "dbms/" + p.relative_to(ROOT).as_posix() not in names]
+    missing = [p.relative_to(ROOT).as_posix() for p in must if "vault/" + p.relative_to(ROOT).as_posix() not in names]
     leaked = [n for n in names if n.endswith((".env", ".pyc", "/tests.py")) or "/data/" in n]
     if missing or leaked:
         sys.exit(f"Release check FAILED. Missing: {missing[:10]} Not allowed: {leaked[:10]}")

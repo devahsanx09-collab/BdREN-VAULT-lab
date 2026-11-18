@@ -12,11 +12,11 @@
 #   7. the latest logins with the level each user should have received
 # and ends with "ALL CHECKS PASSED" or the list of problems and how to fix them.
 #
-# Usage:   sudo bash /opt/dbms/deploy/radius/check_levels.sh
-#          (reads RADIUS_DB_* from /opt/dbms/.env; set ENV_FILE=/path/.env to use another file)
+# Usage:   sudo bash /opt/vault/deploy/radius/check_levels.sh
+#          (reads RADIUS_DB_* from /opt/vault/.env; set ENV_FILE=/path/.env to use another file)
 set -uo pipefail
 
-ENV_FILE="${ENV_FILE:-/opt/dbms/.env}"
+ENV_FILE="${ENV_FILE:-/opt/vault/.env}"
 PROBLEMS=()
 WARNINGS=()
 say()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -70,16 +70,16 @@ say "2. DBMS policies in FreeRADIUS"
 SITE="$RADDB/sites-enabled/default"
 active() { grep -Ev '^[[:space:]]*#' "$1" 2>/dev/null; }
 if [ -z "$RADDB" ] || [ ! -f "$SITE" ]; then
-  bad "FreeRADIUS site file not found ($SITE)" "re-run: sudo bash /opt/dbms/deploy/install.sh"
+  bad "FreeRADIUS site file not found ($SITE)" "re-run: sudo bash /opt/vault/deploy/install.sh"
 else
   block() { active "$SITE" | awk -v s="$1" '$0 ~ "^[[:space:]]*"s"[[:space:]]*\\{" {f=1} f {print} f && /^}/ {exit}'; }
   if block authorize | grep -qw dbms_device_limit; then ok "per-device limits (dbms_device_limit) are enforced"
-  else bad "dbms_device_limit is not in 'authorize': users can log in on switches outside their list" "re-run: sudo bash /opt/dbms/deploy/install.sh"; fi
+  else bad "dbms_device_limit is not in 'authorize': users can log in on switches outside their list" "re-run: sudo bash /opt/vault/deploy/install.sh"; fi
   if block post-auth | grep -qw dbms_huawei_levels; then ok "Huawei 0-3 level cap (dbms_huawei_levels) is installed"
-  else warn "dbms_huawei_levels is not in 'post-auth': super-admin is not capped to 3 on 'Huawei (levels 0-3 only)' switches" "re-run: sudo bash /opt/dbms/deploy/install.sh"; fi
+  else warn "dbms_huawei_levels is not in 'post-auth': super-admin is not capped to 3 on 'Huawei (levels 0-3 only)' switches" "re-run: sudo bash /opt/vault/deploy/install.sh"; fi
 fi
 if active "$RADDB/clients.conf" | grep -q dbms_dynamic_clients; then ok "new switches work without restart (dynamic clients)"
-else warn "dynamic clients are not enabled: a new switch needs a FreeRADIUS restart" "sudo bash /opt/dbms/deploy/radius/enable_dynamic_clients.sh"; fi
+else warn "dynamic clients are not enabled: a new switch needs a FreeRADIUS restart" "sudo bash /opt/vault/deploy/radius/enable_dynamic_clients.sh"; fi
 
 # ---- 3. levels forced outside the panel ---------------------------------------------------------
 say "3. Level attributes set outside the panel"
@@ -134,11 +134,11 @@ WEAK_OPS=()
 while IFS='|' read -r g a o v; do
   row="$(printf '%s\n' "$ACTUAL" | awk -F'|' -v g="$g" -v a="$a" '$1==g && $2==a' | head -n1)"
   if [ -z "$row" ]; then
-    GROUP_OK=0; bad "$g: $a is missing (should be $o $v)" "sudo -u dbms /opt/dbms/.venv/bin/python /opt/dbms/manage.py seed_groups   (or re-run install.sh)"
+    GROUP_OK=0; bad "$g: $a is missing (should be $o $v)" "sudo -u vault /opt/vault/.venv/bin/python /opt/vault/manage.py seed_groups   (or re-run install.sh)"
   else
     IFS='|' read -r _ _ ro rv <<<"$row"
     if [ "$rv" != "$v" ]; then
-      GROUP_OK=0; bad "$g: $a = $rv (should be $v)" "sudo -u dbms /opt/dbms/.venv/bin/python /opt/dbms/manage.py seed_groups   (or re-run install.sh)"
+      GROUP_OK=0; bad "$g: $a = $rv (should be $v)" "sudo -u vault /opt/vault/.venv/bin/python /opt/vault/manage.py seed_groups   (or re-run install.sh)"
     elif [ "$ro" != "$o" ]; then
       GROUP_OK=0; WEAK_OPS+=("$g $a")
     fi

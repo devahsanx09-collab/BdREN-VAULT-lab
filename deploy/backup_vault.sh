@@ -3,7 +3,7 @@
 # session keys into one timestamped set of files, so the whole system can be rebuilt if this server, its
 # disk or its database is ever lost.
 #
-# This only WRITES to a local directory (default /var/backups/dbms-dr). That copy is on the same disk as
+# This only WRITES to a local directory (default /var/backups/vault-dr). That copy is on the same disk as
 # everything else, so it does NOT protect against losing this server. Copy that directory to another
 # machine or off-site storage on your own (rsync/rclone/scp, or your existing backup system) - this script
 # only prepares what to copy, and prunes old copies so the local directory does not grow forever.
@@ -18,15 +18,15 @@
 # It does NOT copy the saved device configuration backups themselves (data/backups/, which can be large) -
 # back those up with your normal file backup/snapshot, or add --with-configs to include them here too.
 #
-# Usage:  sudo bash /opt/dbms/deploy/backup_vault.sh [destination-dir] [--with-configs]
-#         Reads DBMS_DB_* / RADIUS_DB_* / DBMS_DATA from /opt/dbms/.env (ENV_FILE=... to use another file).
+# Usage:  sudo bash /opt/vault/deploy/backup_vault.sh [destination-dir] [--with-configs]
+#         Reads DBMS_DB_* / RADIUS_DB_* / DBMS_DATA from /opt/vault/.env (ENV_FILE=... to use another file).
 #         Keeps the newest DR_KEEP_DAYS (default 14) days of archives in the destination directory.
 #
 # Run it daily from root's crontab for an automatic, unattended backup, for example:
-#   0 3 * * * bash /opt/dbms/deploy/backup_vault.sh >> /var/log/dbms-dr-backup.log 2>&1
+#   0 3 * * * bash /opt/vault/deploy/backup_vault.sh >> /var/log/dbms-dr-backup.log 2>&1
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"
+APP_DIR="${APP_DIR:-/opt/vault}"
 ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
 KEEP_DAYS="${DR_KEEP_DAYS:-14}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
@@ -38,7 +38,7 @@ for a in "$@"; do
     *) DEST="$a" ;;
   esac
 done
-DEST="${DEST:-/var/backups/dbms-dr}"
+DEST="${DEST:-/var/backups/vault-dr}"
 
 say()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 ok()   { printf '  \033[1;32mOK\033[0m    %s\n' "$*"; }

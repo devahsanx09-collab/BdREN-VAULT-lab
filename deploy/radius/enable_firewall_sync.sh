@@ -3,17 +3,17 @@
 # After this, adding a device on NAS Clients opens RADIUS for its address at once, and removing it closes
 # it again. Everything else on the internet can no longer reach FreeRADIUS at all.
 #
-# Usage:  sudo bash /opt/dbms/deploy/radius/enable_firewall_sync.sh      (safe to run again)
+# Usage:  sudo bash /opt/vault/deploy/radius/enable_firewall_sync.sh      (safe to run again)
 #
 # Security: the sync script is installed root-owned in /usr/local/sbin (outside the application folder,
 # which the app's own user can write), and sudo lets the app run exactly that file with NO arguments.
 # The script reads the addresses itself from the database, so the web application can never pick a rule.
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"; ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
-SRC="$APP_DIR/deploy/radius/dbms-radius-firewall"
-DEST=/usr/local/sbin/dbms-radius-firewall
-SUDOERS=/etc/sudoers.d/dbms-firewall
+APP_DIR="${APP_DIR:-/opt/vault}"; ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
+SRC="$APP_DIR/deploy/radius/vault-radius-firewall"
+DEST=/usr/local/sbin/vault-radius-firewall
+SUDOERS=/etc/sudoers.d/vault-firewall
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m  !\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -39,7 +39,7 @@ RPORT="$(envv RADIUS_DB_PORT)";    RPORT="${RPORT:-3306}"
 [[ "$RPORT" =~ ^[0-9]+$ ]]            || die "RADIUS_DB_PORT in $ENV_FILE is not a number"
 case "$RPASS" in *\"*|*\\*) die "RADIUS_DB_PASSWORD contains \" or \\, which a MySQL option file cannot hold";; esac
 
-CNF_DIR=/etc/dbms; CNF="$CNF_DIR/radius-firewall.cnf"
+CNF_DIR=/etc/vault; CNF="$CNF_DIR/radius-firewall.cnf"
 install -d -m 700 -o root -g root "$CNF_DIR"
 tmp="$(mktemp)"; chmod 600 "$tmp"
 printf '[client]\nuser="%s"\npassword="%s"\nhost="%s"\nport=%s\n' "$RUSER" "$RPASS" "$RHOST" "$RPORT" > "$tmp"
@@ -80,5 +80,5 @@ else
   warn "ufw is not active, so nothing is filtered yet. Rules are added automatically once you run: sudo ufw enable"
   warn "(allow SSH first so you do not lock yourself out:  sudo ufw allow OpenSSH)"
 fi
-systemctl is-active --quiet dbms && systemctl restart dbms && ok "application restarted"
+systemctl is-active --quiet vault && systemctl restart vault && ok "application restarted"
 printf '\nDone. Add or remove a device on NAS Clients: its RADIUS access in the firewall follows within seconds.\n'

@@ -174,7 +174,7 @@ RADIUS_RELOAD_CMD = os.environ.get("RADIUS_RELOAD_CMD", "sudo -n /usr/bin/system
 # enable_dynamic_clients.sh), so adding a switch needs no FreeRADIUS restart (no "dead time" on switches)
 RADIUS_DYNAMIC_CLIENTS = env_flag("RADIUS_DYNAMIC_CLIENTS")
 # Keeps UDP 1812/1813 open in ufw only for the devices on NAS Clients, run after a device is added or
-# removed. Set by deploy/radius/enable_firewall_sync.sh (sudo -n /usr/local/sbin/dbms-radius-firewall); empty = off
+# removed. Set by deploy/radius/enable_firewall_sync.sh (sudo -n /usr/local/sbin/vault-radius-firewall); empty = off
 RADIUS_FIREWALL_CMD = os.environ.get("RADIUS_FIREWALL_CMD", "").strip()
 # How RADIUS user passwords are stored: "cleartext" (default, works with PAP and CHAP) or "ssha2"
 # (salted SHA-256, PAP only - device CLI logins use PAP). Applies to passwords set from now on.

@@ -12,11 +12,11 @@
 # Safe to run more than once (it does nothing when already done). Logins recorded BEFORE this script
 # ran have no device; every login after it does.
 #
-# Usage:   sudo bash /opt/dbms/deploy/radius/enable_login_log.sh
-#          (reads RADIUS_DB_* from /opt/dbms/.env; set ENV_FILE=/path/.env to use another file)
+# Usage:   sudo bash /opt/vault/deploy/radius/enable_login_log.sh
+#          (reads RADIUS_DB_* from /opt/vault/.env; set ENV_FILE=/path/.env to use another file)
 set -euo pipefail
 
-ENV_FILE="${ENV_FILE:-/opt/dbms/.env}"
+ENV_FILE="${ENV_FILE:-/opt/vault/.env}"
 say()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }

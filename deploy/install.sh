@@ -21,12 +21,12 @@
 # =====================================================================================================
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"; export APP_DIR      # also used by the helper scripts in deploy/radius
-SVC_USER="${SVC_USER:-dbms}"
+APP_DIR="${APP_DIR:-/opt/vault}"; export APP_DIR      # also used by the helper scripts in deploy/radius
+SVC_USER="${SVC_USER:-vault}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ASSUME_YES=0; [ "${1:-}" = "--yes" ] && ASSUME_YES=1
 STAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP_ROOT="/var/backups/dbms"
+BACKUP_ROOT="/var/backups/vault"
 LOG="/var/log/dbms-install-$STAMP.log"
 
 c_b='\033[1;34m'; c_g='\033[1;32m'; c_y='\033[1;33m'; c_r='\033[1;31m'; c_0='\033[0m'
@@ -142,7 +142,7 @@ rollback() {
   warn "putting the previous version back"
   find "$APP_DIR" -mindepth 1 -maxdepth 1 ! -name .env ! -name data ! -name "${KEEP_TOP:-data}" ! -name logs ! -name .venv -exec rm -rf {} +
   tar -C "$APP_DIR" -xzf "$CODE_BACKUP"; chown -R "$SVC_USER:$SVC_USER" "$APP_DIR"
-  systemctl restart dbms 2>/dev/null || true
+  systemctl restart vault 2>/dev/null || true
   warn "previous version restored and restarted"
 }
 
@@ -309,9 +309,9 @@ if [ -n "$(env_get RADIUS_DB_PASSWORD)" ] && [ "$(env_get RADIUS_DB_PASSWORD)" !
     if [ "$(env_get RADIUS_DYNAMIC_CLIENTS)" = 1 ] && grep -qs "dbms_dynamic_clients" /etc/freeradius/3.0/clients.conf; then ok "new switches work at once (no FreeRADIUS restart)"
     elif ENV_FILE="$APP_DIR/.env" bash "$APP_DIR/deploy/radius/enable_dynamic_clients.sh" >/dev/null 2>&1; then ok "new switches work at once (no FreeRADIUS restart)"
     else warn "could not enable instant switch adding; run: sudo bash $APP_DIR/deploy/radius/enable_dynamic_clients.sh"; fi
-    if [ ! -f /etc/sudoers.d/dbms-radius ]; then
+    if [ ! -f /etc/sudoers.d/vault-radius ]; then
       sed "s/^dbms /$SVC_USER /" "$APP_DIR/deploy/radius/sudoers-dbms.example" > /tmp/dbms-radius.$$
-      if visudo -cf /tmp/dbms-radius.$$ >/dev/null; then install -m 440 /tmp/dbms-radius.$$ /etc/sudoers.d/dbms-radius; ok "the app may restart FreeRADIUS after NAS changes"; fi
+      if visudo -cf /tmp/dbms-radius.$$ >/dev/null; then install -m 440 /tmp/dbms-radius.$$ /etc/sudoers.d/vault-radius; ok "the app may restart FreeRADIUS after NAS changes"; fi
       rm -f /tmp/dbms-radius.$$
     fi
     if APP_DIR="$APP_DIR" ENV_FILE="$APP_DIR/.env" SVC_USER="$SVC_USER" bash "$APP_DIR/deploy/radius/enable_firewall_sync.sh" >/dev/null 2>&1; then
@@ -323,14 +323,20 @@ fi
 # ---- 7. service ------------------------------------------------------------------------------------
 step "Service"
 PORT=8495
-if [ -f /etc/systemd/system/dbms.service ]; then
-  p="$(grep -oE -- '--port[ =]+[0-9]+' /etc/systemd/system/dbms.service | grep -oE '[0-9]+' | head -n1 || true)"; PORT="${p:-$PORT}"
-fi
+for unit in /etc/systemd/system/vault.service /etc/systemd/system/vault.service; do
+  [ -f "$unit" ] || continue
+  p="$(grep -oE -- '--port[ =]+[0-9]+' "$unit" | grep -oE '[0-9]+' | head -n1 || true)"; PORT="${p:-$PORT}"; break
+done
 sed -e "s|^User=.*|User=$SVC_USER|" -e "s|^Group=.*|Group=$SVC_USER|" -e "s|^WorkingDirectory=.*|WorkingDirectory=$APP_DIR|" \
     -e "s|^ExecStart=.*|ExecStart=$APP_DIR/.venv/bin/python manage.py serve --host 127.0.0.1 --port $PORT|" \
-    "$APP_DIR/deploy/dbms.service" > /etc/systemd/system/dbms.service
-systemctl daemon-reload; systemctl enable dbms >/dev/null 2>&1
-ok "service uses port $PORT"
+    "$APP_DIR/deploy/vault.service" > /etc/systemd/system/vault.service
+# migrate away from the old "dbms" service name, if a previous install left one
+if [ -f /etc/systemd/system/vault.service ]; then
+  systemctl stop vault 2>/dev/null; systemctl disable vault 2>/dev/null; rm -f /etc/systemd/system/vault.service
+  ok "renamed the service: dbms -> vault"
+fi
+systemctl daemon-reload; systemctl enable vault >/dev/null 2>&1
+ok "service 'vault' uses port $PORT"
 
 # ---- 8a. fresh server: HTTPS website with nginx and a self-signed certificate ---------------------------
 proxied_site() { grep -RlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true; }
@@ -409,17 +415,17 @@ if command -v ufw >/dev/null 2>&1 && ! ufw status 2>/dev/null | grep -q "Status:
     if ufw --force enable >/dev/null 2>&1; then
       ok "firewall on (SSH and web stay open)"
       # open RADIUS 1812/1813 only for the devices on NAS Clients (none yet = closed until you add them)
-      [ -x /usr/local/sbin/dbms-radius-firewall ] && { /usr/local/sbin/dbms-radius-firewall >/dev/null 2>&1 || true; ok "RADIUS 1812-1813/udp opened for NAS Clients devices only"; }
+      [ -x /usr/local/sbin/vault-radius-firewall ] && { /usr/local/sbin/vault-radius-firewall >/dev/null 2>&1 || true; ok "RADIUS 1812-1813/udp opened for NAS Clients devices only"; }
     else warn "could not turn on ufw; later run:  sudo ufw allow OpenSSH && sudo ufw enable"; fi
   fi
 fi
 
 # ---- 9. start and check ------------------------------------------------------------------------------
 step "Start"
-systemctl restart dbms
+systemctl restart vault
 for _ in $(seq 1 20); do curl -fsS "http://127.0.0.1:$PORT/healthz" >/dev/null 2>&1 && break; sleep 1; done
 if curl -fsS "http://127.0.0.1:$PORT/healthz" >/dev/null 2>&1; then ok "the website is answering"
-else rollback; die "The new version did not start (see: journalctl -u dbms -n 50). The previous version was restored."; fi
+else rollback; die "The new version did not start (see: journalctl -u vault -n 50). The previous version was restored."; fi
 
 if [ -n "${DOMAIN_REQ:-}" ]; then
   step "Domain $DOMAIN_REQ"

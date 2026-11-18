@@ -96,7 +96,7 @@ server and updates an existing one.
 **From a release package**
 ```bash
 unzip -o BdREN-VAULT.zip -d /tmp/bdren-vault
-sudo bash /tmp/bdren-vault/deploy/install.sh
+sudo bash /tmp/bdren-vault/vault/deploy/install.sh
 ```
 
 **From a Git clone**

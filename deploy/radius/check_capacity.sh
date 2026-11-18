@@ -13,11 +13,11 @@
 #   4. the radius log for signs the pool was ever exhausted (queued / dropped requests)
 # and ends with "ALL CHECKS PASSED" or what to raise and how.
 #
-# Usage:   sudo bash /opt/dbms/deploy/radius/check_capacity.sh
-#          (reads RADIUS_DB_* and DBMS_DB_* from /opt/dbms/.env; set ENV_FILE=/path/.env to use another file)
+# Usage:   sudo bash /opt/vault/deploy/radius/check_capacity.sh
+#          (reads RADIUS_DB_* and DBMS_DB_* from /opt/vault/.env; set ENV_FILE=/path/.env to use another file)
 set -uo pipefail
 
-ENV_FILE="${ENV_FILE:-/opt/dbms/.env}"
+ENV_FILE="${ENV_FILE:-/opt/vault/.env}"
 PROBLEMS=()
 WARNINGS=()
 say()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }

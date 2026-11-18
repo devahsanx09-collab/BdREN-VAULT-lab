@@ -2,7 +2,7 @@
 # BdREN VAULT: open RADIUS (UDP 1812 and 1813) in the ufw firewall ONLY for the devices on
 # RADIUS / AAA -> NAS Clients, instead of for the whole internet.
 #
-# Installed root-owned as /usr/local/sbin/dbms-radius-firewall by deploy/radius/enable_firewall_sync.sh.
+# Installed root-owned as /usr/local/sbin/vault-radius-firewall by deploy/radius/enable_firewall_sync.sh.
 # The web application may run exactly this file with sudo and no arguments, after a device is added or
 # removed. It reads the device list itself from the RADIUS database, so the web application can never
 # choose a firewall rule. Safe to run any number of times.
@@ -17,7 +17,7 @@ set -euo pipefail
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RDB="@RADIUS_DB@"                     # filled in by enable_firewall_sync.sh
-DB_CNF=/etc/dbms/radius-firewall.cnf   # database login, root-only (written by enable_firewall_sync.sh)
+DB_CNF=/etc/vault/radius-firewall.cnf   # database login, root-only (written by enable_firewall_sync.sh)
 CLIENTS_CONF=/etc/freeradius/3.0/clients.conf
 TAG="dbms-nas"
 PORTS="1812,1813"

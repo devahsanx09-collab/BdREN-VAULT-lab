@@ -1,15 +1,15 @@
-# systemd unit: sudo cp deploy/dbms.service /etc/systemd/system/ && sudo systemctl enable --now dbms
-# Assumes the project in /opt/dbms, a virtualenv in /opt/dbms/.venv and a system user "dbms".
+# systemd unit: sudo cp deploy/vault.service /etc/systemd/system/ && sudo systemctl enable --now vault
+# Assumes the project in /opt/vault, a virtualenv in /opt/vault/.venv and a system user "dbms".
 [Unit]
 Description=VAULT
 After=network.target mysql.service mariadb.service
 
 [Service]
-User=dbms
-Group=dbms
-WorkingDirectory=/opt/dbms
+User=vault
+Group=vault
+WorkingDirectory=/opt/vault
 # 127.0.0.1 = reachable only through the reverse proxy (deploy/nginx-dbms.conf). Use 0.0.0.0 for plain LAN access.
-ExecStart=/opt/dbms/.venv/bin/python manage.py serve --host 127.0.0.1 --port 8495
+ExecStart=/opt/vault/.venv/bin/python manage.py serve --host 127.0.0.1 --port 8495
 Restart=on-failure
 RestartSec=5
 # Keep the process away from the rest of the system. FreeRADIUS is restarted through sudo

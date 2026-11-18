@@ -7,10 +7,10 @@
 # first request arrives (deploy/radius/dbms_dynamic_clients), and the app no longer restarts FreeRADIUS
 # when a switch is added. Switches FreeRADIUS already knows keep working exactly as before.
 #
-# Usage:  sudo bash /opt/dbms/deploy/radius/enable_dynamic_clients.sh      (safe to run again)
+# Usage:  sudo bash /opt/vault/deploy/radius/enable_dynamic_clients.sh      (safe to run again)
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/dbms}"; ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
+APP_DIR="${APP_DIR:-/opt/vault}"; ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
 R=/etc/freeradius/3.0
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m  !\033[0m %s\n' "$*"; }
@@ -21,8 +21,8 @@ die()  { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 [ -e "$R/mods-enabled/sql" ] || die "The FreeRADIUS sql module is not enabled; the switch list cannot be read from the database"
 SRC="$APP_DIR/deploy/radius/dbms_dynamic_clients"; [ -f "$SRC" ] || die "$SRC not found (install the new package first)"
 
-B="/var/backups/dbms/freeradius-before-dynamic-$(date +%Y%m%d-%H%M%S).tar.gz"
-mkdir -p /var/backups/dbms; chmod 700 /var/backups/dbms
+B="/var/backups/vault/freeradius-before-dynamic-$(date +%Y%m%d-%H%M%S).tar.gz"
+mkdir -p /var/backups/vault; chmod 700 /var/backups/vault
 tar -czf "$B" -C /etc freeradius; ok "FreeRADIUS configuration saved: $B"
 restore() { rm -rf /etc/freeradius && tar -xzf "$B" -C /etc; systemctl restart freeradius || true; warn "previous FreeRADIUS configuration restored"; }
 
@@ -54,7 +54,7 @@ ok "FreeRADIUS restarted (the last restart needed for adding switches)"
 if [ -f "$ENV_FILE" ]; then
   if grep -qE '^RADIUS_DYNAMIC_CLIENTS=' "$ENV_FILE"; then sed -i 's/^RADIUS_DYNAMIC_CLIENTS=.*/RADIUS_DYNAMIC_CLIENTS=1/' "$ENV_FILE"
   else printf 'RADIUS_DYNAMIC_CLIENTS=1\n' >> "$ENV_FILE"; fi
-  systemctl is-active --quiet dbms && systemctl restart dbms
+  systemctl is-active --quiet vault && systemctl restart vault
   ok "the application no longer restarts FreeRADIUS when a switch is added"
 fi
 
