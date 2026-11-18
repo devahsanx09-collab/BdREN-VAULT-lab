@@ -114,7 +114,7 @@ function repCard(r,isOpen){
         (c.preview.length?`<pre class="rep-prev">${c.preview.map(l=>`<span class="l ${l[0]==="+"?"a":"r"}">${esc(l)}</span>`).join("")}</pre>`:`<p class="rep-note">${repData.preview_hidden?"The changed lines are shown to Operators and Administrators only.":"Only formatting or volatile lines changed."}</p>`)}</div>
       <div class="rep-act">${c.first?`<button type="button" class="link" data-rep-view data-d="${esc(r.device)}" data-f="${esc(c.file)}">View</button>`:
         `<button type="button" class="link" data-rep-diff data-d="${esc(r.device)}" data-a="${esc(c.prev)}" data-b="${esc(c.file)}">Full diff</button>`}</div></li>`).join("");
-  return `<details class="rep-card${r.changes?" has-chg":""}" data-dev="${esc(r.device)}"${isOpen?" open":""}>
+  return `<details class="rep-card${r.changes?" has-chg":""}" data-key="${esc(r.device)}" data-dev="${esc(r.device)}"${isOpen?" open":""}>
     <summary>
       <span class="rep-dev"><b>${esc(r.device)}</b><small>${esc(r.ip||"Not in the device list")}${r.type?" · "+esc(vInfo(r.type).group||r.type):""}</small></span>
       ${status}

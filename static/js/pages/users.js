@@ -49,7 +49,7 @@ function renderSignins(){
   if(!d.rows.length){$("#signinList").innerHTML='<div class="empty"><b>No matching sign-ins</b>Change the account, result or search.</div>';return}
   const {rows,bar}=paginate("signins",d.rows);
   morph($("#signinList"),`<div class="tbl"><table><thead><tr><th>Time</th><th>Account</th><th>Result</th><th>IP address</th><th>Browser</th></tr></thead><tbody>`+
-    rows.map(r=>`<tr><td class="when">${fmtWhen(r.ts)}</td><td><strong>${esc(r.account||"-")}</strong></td>
+    rows.map(r=>`<tr data-key="${esc([r.ts,r.account,r.result,r.ip].join("|"))}"><td class="when">${fmtWhen(r.ts)}</td><td><strong>${esc(r.account||"-")}</strong></td>
       <td><span class="pill ${r.result==="Signed in"?"UP":r.result==="Failed"?"DOWN":""}">${esc(r.result)}</span>${r.reason?`<span class="sub">${esc(r.reason)}</span>`:""}</td>
       <td class="m">${esc(r.ip||"-")}</td><td>${esc(r.browser||"-")}</td></tr>`).join("")+`</tbody></table></div>`+bar);
 }

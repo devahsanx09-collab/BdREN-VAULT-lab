@@ -30,6 +30,17 @@ function morph(el,html){
 }
 function morphKids(a,b,quiet){
   const an=[...a.childNodes],bn=[...b.childNodes];
+  /* rows with data-key (a device id, a job id ...) are matched by identity, not by position: searching, filtering,
+     sorting or a new entry at the top only MOVES rows, so nothing glows; only a value that really changed does */
+  if(bn.some(n=>n.nodeType===1&&n.hasAttribute("data-key"))){
+    const old=new Map();
+    an.forEach(n=>{const k=n.nodeType===1&&n.getAttribute("data-key");if(k&&!old.has(k))old.set(k,n)});
+    const out=bn.map(y=>{const k=y.nodeType===1&&y.getAttribute("data-key"),x=k&&old.get(k);
+      if(x&&x.nodeName===y.nodeName){old.delete(k);morphNode(x,y,quiet);return x}return y});
+    out.forEach((n,i)=>{const cur=a.childNodes[i];if(cur!==n)a.insertBefore(n,cur||null)});
+    while(a.childNodes.length>out.length)a.lastChild.remove();
+    return;
+  }
   bn.forEach((y,i)=>{const x=an[i];if(!x)a.appendChild(y);else morphNode(x,y,quiet)});
   for(let i=bn.length;i<an.length;i++)an[i].remove();
 }
@@ -46,7 +57,7 @@ function morphNode(x,y,quiet){
   morphKids(x,y,quiet);
 }
 function flashChange(el){
-  if(!el||el.closest("svg"))return;
+  if(!el||el.closest("svg,.pager"))return;      /* the "Showing 1-10 of N" counter changes on every search: no glow */
   el.classList.remove("upd");void el.offsetWidth;el.classList.add("upd");
   clearTimeout(el._upd);el._upd=setTimeout(()=>el.classList.remove("upd"),1600);
 }

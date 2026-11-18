@@ -49,7 +49,7 @@ function jobCard(j,isOpen){
     <div class="tbl"><table><thead><tr><th>Device</th><th>IP address</th><th>Result</th><th>Reason</th></tr></thead><tbody>${shown.map(f=>`<tr><td><strong>${esc(f.name||f.ip)}</strong></td><td class="m">${esc(f.ip)}</td><td><span class="pill ${f.status==="FAILED"?"FAILED":""}">${f.status==="FAILED"?"Failed":"Stopped"}</span></td><td class="log-message">${esc(f.message||"No reason recorded")}</td></tr>`).join("")}</tbody></table></div>
     ${failed+(c.CANCELLED||0)>shown.length?`<p class="rep-note">Showing the first ${shown.length}. Activity Logs lists every failure with its reason.</p>`:""}`
     :`<p class="rep-note">${!j.finished?`Running: ${j.done} of ${j.total} devices done.`:c.CANCELLED?"The job was stopped; devices that had not finished were skipped and nothing was saved for them.":"Every device in this run finished successfully."}</p>`;
-  return `<details class="job ${cls}" data-job="${esc(j.id)}"${isOpen?" open":""}>
+  return `<details class="job ${cls}" data-key="${esc(j.id)}" data-job="${esc(j.id)}"${isOpen?" open":""}>
     <summary>
       <span class="job-st"><i></i>${esc(label)}</span>
       <span class="job-main"><b>${esc(j.reason_label)}</b><small>${esc(fmtBdDateTime(j.started))} · by ${esc(j.started_by)}</small></span>

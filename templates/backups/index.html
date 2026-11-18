@@ -4,7 +4,7 @@
 <section id="backups">
     <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Every saved version of each device's configuration: view, compare, download or delete." %}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="b" href="/api/download-all">Download latest of all (zip)</a><button class="b d adm" id="delBk">Delete all backups</button></div></div>
-    <div class="search backup-search"><input id="bkSearch" type="search" placeholder="Search backups by device name or date…" aria-label="Search backups by device name or date"><button class="b" id="bkSearchClear" type="button" title="Clear search">Clear</button></div>
+    <div class="search backup-search"><input id="bkSearch" autocomplete="off" spellcheck="false" type="search" placeholder="Search backups by device name or date…" aria-label="Search backups by device name or date"><button class="b" id="bkSearchClear" type="button" title="Clear search">Clear</button></div>
     <div class="bar" id="bkBar"><label class="ck"><input type="checkbox" id="bkAll"> Select all</label><span class="selcount" id="bkCount"></span><span class="sp"></span>
       <button class="b" id="bkDlSel" type="button">Download selected (latest)</button><button class="b" id="bkDlAll" type="button">Download selected (all versions)</button><button class="b d adm" id="bkDelSel" type="button">Delete selected</button></div>
     <div id="bkList"></div>

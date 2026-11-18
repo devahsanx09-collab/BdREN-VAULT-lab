@@ -58,7 +58,7 @@ function renderDevices(){
   }
   const {rows:list,bar}=paginate("devices",found);
   morph($("#devList"),found.length?`<div class="mcheck"><label class="ck"><input type="checkbox" id="allM"> Select all on this page</label></div><div class="tbl cards"><table class="dt"><thead><tr><th class="c"><input type="checkbox" id="all" aria-label="Select all"></th>${th("name","Device")}${th("ip","IP address")}${th("ping","Ping")}<th>User</th><th>Added by</th>${th("status","Backup status")}${th("when","Last backup")}<th class="ac">Action</th></tr></thead><tbody>`+
-  list.map(d=>`<tr class="${d.last_status==="FAILED"?"bad":""}"><td class="c"><input type="checkbox" class="sel" value="${d.id}"${selected.has(d.id)?" checked":""} aria-label="Select ${esc(d.ip)}"></td>
+  list.map(d=>`<tr data-key="${d.id}" class="${d.last_status==="FAILED"?"bad":""}"><td class="c"><input type="checkbox" class="sel" value="${d.id}"${selected.has(d.id)?" checked":""} aria-label="Select ${esc(d.ip)}"></td>
    <td class="dv" data-device-backups="${d.id}" title="Click to open this device's backup folders"><div class="dcell"><span class="brand-logo v-${slug(vInfo(d.device_type).group||d.device_type)}" title="${esc(vInfo(d.device_type).group||d.device_type)}" aria-label="${esc(vInfo(d.device_type).group||d.device_type)} logo">${brandMark(d.device_type)}</span><div>${d.name?`<span class="dn">${esc(d.name)}</span>`:'<span class="none">Awaiting first backup</span>'}<span class="sub">${vBadge(d.device_type,d)}</span></div></div></td>
    <td class="m ip">${esc(d.ip)}<span class="port">:${d.port}</span></td><td class="ping pg" data-id="${d.id}" data-morph-skip></td>
    <td class="usr" data-l="User">${esc(d.username||"-")}</td>

@@ -6,7 +6,7 @@
       <div class="tacts"><a class="b op" href="/api/devices/export.csv">Export inventory CSV</a><button class="b op" id="addBtn" type="button">Add device</button><button class="b op" id="retryFailed" type="button">Retry failed</button><button class="b p op" id="runAll" type="button">Back up all</button></div></div>
     <div class="kpis" id="stats"></div>
     <div class="bar flt">
-      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search name, IP or type" aria-label="Search devices"></div>
+      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" autocomplete="off" spellcheck="false" placeholder="Search name, IP or type" aria-label="Search devices"></div>
       <div class="chips" id="devChips" role="group" aria-label="Filter devices"></div>
       <span class="sp"></span>
       <label class="live"><input type="checkbox" id="pingOn" checked> Live ping</label>

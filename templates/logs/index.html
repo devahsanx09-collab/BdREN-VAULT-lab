@@ -6,7 +6,7 @@
       <div class="tacts"><button class="b" id="logRefresh" type="button">Refresh logs</button><button class="b" id="logExport" type="button">Export CSV</button></div></div>
     <div class="kpis" id="logKpis"></div>
     <div class="bar flt log-filters">
-      <div class="search"><input id="logSearch" placeholder="Search device, IP or message" aria-label="Search logs"></div>
+      <div class="search"><input id="logSearch" autocomplete="off" spellcheck="false" placeholder="Search device, IP or message" aria-label="Search logs"></div>
       <select id="logStatus" aria-label="Filter by status"><option value="ALL">All statuses</option><option value="SUCCESS">Saved</option><option value="UNCHANGED">Unchanged</option><option value="FAILED">Failed</option></select>
       <select id="logPeriod" aria-label="Filter by time"><option value="ALL">Any time</option><option value="24H">Last 24 hours</option><option value="7D">Last 7 days</option><option value="30D">Last 30 days</option><option value="90D">Last 90 days</option></select>
       <span class="sp"></span><span class="d" id="logResultCount" aria-live="polite"></span>

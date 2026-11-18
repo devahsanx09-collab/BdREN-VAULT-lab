@@ -5,7 +5,7 @@
     <div class="title"><div>{% include "components/_page_heading.html" with title=page.title subtitle="Network devices that are allowed to ask this server to authenticate a login." %}</div>
       <div class="tacts"><button class="b" id="radNasRefresh" type="button">Refresh</button><button class="b p" id="radAddNas" type="button">Add device</button></div></div>
     <div class="bar flt">
-      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="radNasQ" placeholder="Search name, IP or vendor" aria-label="Search RADIUS devices"></div>
+      <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="radNasQ" autocomplete="off" spellcheck="false" placeholder="Search name, IP or vendor" aria-label="Search RADIUS devices"></div>
       <span class="sp"></span><span class="d" id="radNasCount" aria-live="polite"></span>
     </div>
     <div id="radNasList"></div>
