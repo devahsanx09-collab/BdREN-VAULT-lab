@@ -239,8 +239,7 @@ if [ "$WANT_RADIUS" = 1 ]; then
   if [ -z "$RPASS" ] || [ "$RPASS" = "change-me" ]; then
     # new RADIUS database + user, the FreeRADIUS tables, and the sql module pointing at it
     RDB="$(env_get RADIUS_DB_NAME)"; RDB="${RDB:-radius}"; RUSER="$(env_get RADIUS_DB_USER)"; RUSER="${RUSER:-radius}"
-    # same password as the one chosen (or generated) for the application database at the start
-    RPASS="$(env_get DBMS_DB_PASSWORD)"; [ -n "$RPASS" ] && [ "$RPASS" != "change-me" ] || RPASS="$(gen_password)"
+    RPASS="$(head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)"
     mysql -u root <<SQL || die "Could not create the RADIUS database as the MariaDB root user (run: sudo mysql)."
 CREATE DATABASE IF NOT EXISTS \`$RDB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$RUSER'@'localhost' IDENTIFIED BY '$RPASS';
@@ -254,28 +253,7 @@ SQL
     fi
     env_set RADIUS_DB_NAME "$RDB"; env_set RADIUS_DB_USER "$RUSER"; env_set RADIUS_DB_PASSWORD "$RPASS"
     env_set RADIUS_DB_HOST 127.0.0.1; env_set RADIUS_DB_PORT 3306
-    ok "RADIUS database ready (same password as the application database, stored in .env)"
-  else ok "existing RADIUS database settings kept"; fi
-
-  # The sql module is (re)written whenever it is missing or not ours - also on a re-run after an earlier
-  # attempt was rejected and rolled back (the password is already in .env then, so the branch above is skipped).
-  RDB="$(env_get RADIUS_DB_NAME)"; RDB="${RDB:-radius}"; RUSER="$(env_get RADIUS_DB_USER)"; RUSER="${RUSER:-radius}"
-  RPASS="$(env_get RADIUS_DB_PASSWORD)"
-  # the login in .env must really work, or FreeRADIUS refuses to start (read_clients needs the database)
-  if ! MYSQL_PWD="$RPASS" mysql -u "$RUSER" -h localhost -e "SELECT 1" "$RDB" >/dev/null 2>&1; then
-    mysql -u root <<SQL >/dev/null 2>&1 && ok "RADIUS database login repaired" || warn "RADIUS database login '$RUSER' does not work (check RADIUS_DB_* in .env)"
-CREATE DATABASE IF NOT EXISTS \`$RDB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS '$RUSER'@'localhost' IDENTIFIED BY '$RPASS';
-ALTER USER '$RUSER'@'localhost' IDENTIFIED BY '$RPASS';
-GRANT ALL PRIVILEGES ON \`$RDB\`.* TO '$RUSER'@'localhost';
-FLUSH PRIVILEGES;
-SQL
-  fi
-  if [ "$(mysql -u root -N -B -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$RDB' AND table_name='radcheck'" 2>/dev/null)" = 0 ]; then
-    mysql -u root "$RDB" < "$RAD_DIR/mods-config/sql/main/mysql/schema.sql" && ok "FreeRADIUS tables created in database '$RDB'"
-  fi
-  if [ ! -e "$RAD_DIR/mods-enabled/sql" ] || ! grep -qs "Written by VAULT" "$RAD_DIR/mods-available/sql" \
-     || ! grep -qs "tls_required = no" "$RAD_DIR/mods-available/sql"; then
+    ok "RADIUS database ready (password generated and stored in .env)"
     # sql module: our own complete file (the packaged one has a mysql TLS block that blocks local connections)
     [ -f "$RAD_DIR/mods-available/sql" ] && cp -p "$RAD_DIR/mods-available/sql" "$RAD_DIR/mods-available/sql.dist-$STAMP"
     cat > "$RAD_DIR/mods-available/sql" <<CONF
@@ -284,12 +262,6 @@ sql {
 	dialect = "mysql"
 	driver = "rlm_sql_mysql"
 	mysql {
-		# local MariaDB has no TLS: the packaged "tls_required = yes" makes every connection fail
-		tls {
-			tls_required = no
-			tls_check_cert = no
-			tls_check_cert_cn = no
-		}
 		warnings = auto
 	}
 	server = "localhost"
@@ -326,7 +298,15 @@ CONF
     chown root:freerad "$RAD_DIR/mods-available/sql"; chmod 640 "$RAD_DIR/mods-available/sql"
     ln -sf ../mods-available/sql "$RAD_DIR/mods-enabled/sql"
     ok "FreeRADIUS connected to its database"
-  fi
+  else ok "existing RADIUS database settings kept"; fi
+
+  # Always point FreeRADIUS at its database, even when the password already existed (writes the sql
+  # module from .env and enables it, fixing the packaged TLS block). install.sh restarts FreeRADIUS
+  # below, so skip the restart inside the helper.
+  SETUP_SQL_NO_RESTART=1 APP_DIR="$APP_DIR" ENV_FILE="$APP_DIR/.env" RAD_DIR="$RAD_DIR" \
+    bash "$APP_DIR/deploy/radius/setup_sql.sh" \
+    && ok "FreeRADIUS sql module configured from .env" \
+    || warn "could not configure the FreeRADIUS sql module; run: sudo bash $APP_DIR/deploy/radius/setup_sql.sh"
 
   # "where this user may log in" policy (RADIUS / AAA -> AAA Users)
   if [ ! -f "$RAD_DIR/policy.d/dbms_device_limit" ]; then
@@ -351,17 +331,11 @@ CONF
     if grep -q "dbms_huawei_levels" "/tmp/dbms-default.$$"; then cp "/tmp/dbms-default.$$" "$(readlink -f "$SITE_DEF")"; ok "Huawei 0-3 level switches supported"; fi
     rm -f "/tmp/dbms-default.$$"
   fi
-  RAD_CHECK="$BACKUP_ROOT/freeradius-check-$STAMP.log"
-  if freeradius -XC >"$RAD_CHECK" 2>&1; then
+  if freeradius -C >/dev/null 2>&1; then
     systemctl enable freeradius >/dev/null 2>&1; systemctl restart freeradius && ok "FreeRADIUS is running"
   else
-    # keep the rejected files for support, then show WHY before rolling back
-    tar -czf "$BACKUP_ROOT/freeradius-rejected-$STAMP.tar.gz" -C /etc freeradius 2>/dev/null || true
-    warn "FreeRADIUS rejected the new configuration. Its last messages:"
-    grep -vE '^[[:space:]]*$' "$RAD_CHECK" | tail -n 15 | sed 's/^/      /'
     rad_restore; systemctl restart freeradius 2>/dev/null || true
-    warn "the previous configuration was restored. Full check: $RAD_CHECK  (rejected files: freeradius-rejected-$STAMP.tar.gz)"
-    warn "fix the cause above and run this installer again; it retries the FreeRADIUS setup"
+    warn "FreeRADIUS rejected the new configuration (check: sudo freeradius -XC); the previous one was restored"
   fi
   # RADIUS ports 1812-1813/udp: opened per NAS Clients device in section 6 (enable_firewall_sync.sh),
   # not for the whole internet
