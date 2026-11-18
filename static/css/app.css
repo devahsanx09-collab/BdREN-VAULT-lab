@@ -734,6 +734,10 @@ main>section:not([hidden]){animation:fadeUp .2s var(--ease) both}
 /* moving between screens: the browser cross-fades the old page into the new one (menu and top bar stay
    put), instead of a blank flash. Browsers without it simply load the page as before. */
 @view-transition{navigation:auto}
+/* keep the sidebar and top bar still across page loads; only the content cross-fades */
+.side{view-transition-name:v-side}.appbar{view-transition-name:v-bar}#main{view-transition-name:v-main}
+::view-transition-old(v-side),::view-transition-new(v-side),::view-transition-old(v-bar),::view-transition-new(v-bar){animation:none}
+::view-transition-old(v-main),::view-transition-new(v-main){animation-duration:.17s}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}
 /* tiles and charts animate on the first draw only (dashboard.js adds .charts-ready afterwards),
    so the 30-second refresh never makes them flash */
