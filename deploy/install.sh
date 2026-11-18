@@ -323,7 +323,7 @@ fi
 # ---- 7. service ------------------------------------------------------------------------------------
 step "Service"
 PORT=8495
-for unit in /etc/systemd/system/vault.service /etc/systemd/system/vault.service; do
+for unit in /etc/systemd/system/vault.service /etc/systemd/system/dbms.service; do
   [ -f "$unit" ] || continue
   p="$(grep -oE -- '--port[ =]+[0-9]+' "$unit" | grep -oE '[0-9]+' | head -n1 || true)"; PORT="${p:-$PORT}"; break
 done
@@ -331,11 +331,12 @@ sed -e "s|^User=.*|User=$SVC_USER|" -e "s|^Group=.*|Group=$SVC_USER|" -e "s|^Wor
     -e "s|^ExecStart=.*|ExecStart=$APP_DIR/.venv/bin/python manage.py serve --host 127.0.0.1 --port $PORT|" \
     "$APP_DIR/deploy/vault.service" > /etc/systemd/system/vault.service
 # migrate away from the old "dbms" service name, if a previous install left one
-if [ -f /etc/systemd/system/vault.service ]; then
-  systemctl stop vault 2>/dev/null; systemctl disable vault 2>/dev/null; rm -f /etc/systemd/system/vault.service
+if [ -f /etc/systemd/system/dbms.service ]; then
+  systemctl stop dbms 2>/dev/null || true; systemctl disable dbms 2>/dev/null || true; rm -f /etc/systemd/system/dbms.service
   ok "renamed the service: dbms -> vault"
 fi
-systemctl daemon-reload; systemctl enable vault >/dev/null 2>&1
+systemctl daemon-reload
+systemctl enable vault >/dev/null 2>&1 || warn "could not enable the vault service"
 ok "service 'vault' uses port $PORT"
 
 # ---- 8a. fresh server: HTTPS website with nginx and a self-signed certificate ---------------------------

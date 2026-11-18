@@ -1,5 +1,5 @@
 # systemd unit: sudo cp deploy/vault.service /etc/systemd/system/ && sudo systemctl enable --now vault
-# Assumes the project in /opt/vault, a virtualenv in /opt/vault/.venv and a system user "dbms".
+# Assumes the project in /opt/vault, a virtualenv in /opt/vault/.venv and a system user "vault".
 [Unit]
 Description=VAULT
 After=network.target mysql.service mariadb.service
