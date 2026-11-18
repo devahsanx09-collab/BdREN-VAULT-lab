@@ -70,7 +70,7 @@ sql {
 	# NAS clients come from the "nas" table (RADIUS / AAA -> NAS Clients)
 	read_clients = yes
 	client_table = "nas"
-	# queries.conf uses %{${group_attribute}}; "SQL-Group" is a built-in FreeRADIUS attribute, so it resolves (a custom name like sql-SQL-Group is unknown and -C fails)
+	# "SQL-Group" is a built-in FreeRADIUS attribute; a custom group name makes the packaged queries.conf fail with "Unknown attribute"
 	group_attribute = "SQL-Group"
 	\$INCLUDE \${modconfdir}/\${.:name}/main/\${dialect}/queries.conf
 }
