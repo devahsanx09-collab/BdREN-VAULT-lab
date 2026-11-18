@@ -333,7 +333,7 @@ systemctl daemon-reload; systemctl enable dbms >/dev/null 2>&1
 ok "service uses port $PORT"
 
 # ---- 8a. fresh server: HTTPS website with nginx and a self-signed certificate ---------------------------
-proxied_site() { grep -rlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true; }
+proxied_site() { grep -RlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true; }
 WANT_HTTPS=0
 if [ -z "$(proxied_site)" ] && [ "$MODE" = install ]; then
   if [ -n "$PRE_WANT_HTTPS" ]; then [ "$PRE_WANT_HTTPS" = y ] && WANT_HTTPS=1
@@ -373,7 +373,7 @@ fi
 # ---- 8. nginx in front: pass the real visitor IP, hide the version ------------------------------------
 if command -v nginx >/dev/null 2>&1; then
   step "nginx"
-  SITE="$(grep -rlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true)"
+  SITE="$(grep -RlE "proxy_pass[[:space:]]+https?://(127\.0\.0\.1|localhost):$PORT" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | head -n1 || true)"
   if [ -n "$SITE" ]; then
     SITE="$(readlink -f "$SITE")"
     if ! grep -q "X-Forwarded-For" "$SITE" || ! grep -q "X-Forwarded-Proto" "$SITE" || ! grep -q "X-Forwarded-Host" "$SITE" || ! grep -q "server_tokens off" "$SITE"; then
