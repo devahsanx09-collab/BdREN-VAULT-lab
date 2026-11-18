@@ -70,7 +70,8 @@ sql {
 	# NAS clients come from the "nas" table (RADIUS / AAA -> NAS Clients)
 	read_clients = yes
 	client_table = "nas"
-	group_attribute = "\${.:instance}-SQL-Group"
+	# must match the %{sql-SQL-Group} the packaged queries.conf uses, or -XC fails with "Unknown attribute"
+	group_attribute = "sql-SQL-Group"
 	\$INCLUDE \${modconfdir}/\${.:name}/main/\${dialect}/queries.conf
 }
 CONF

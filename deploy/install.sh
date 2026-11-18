@@ -291,7 +291,7 @@ sql {
 	# NAS clients come from the "nas" table, managed on the RADIUS / AAA -> NAS Clients page
 	read_clients = yes
 	client_table = "nas"
-	group_attribute = "\${.:instance}-SQL-Group"
+	group_attribute = "sql-SQL-Group"
 	\$INCLUDE \${modconfdir}/\${.:name}/main/\${dialect}/queries.conf
 }
 CONF
