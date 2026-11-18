@@ -6,7 +6,7 @@
 .env.*
 !.env.example
 *.key
-data/
+/data/
 
 # Python
 .venv/
@@ -15,8 +15,8 @@ __pycache__/
 *.py[cod]
 
 # Runtime output
-staticfiles/
-logs/
+/staticfiles/
+/logs/
 *.log
 *.sqlite3
 
